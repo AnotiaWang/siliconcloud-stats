@@ -41,6 +41,9 @@ export async function onRequestPost(context) {
         headers: {
           cookie,
         },
+        eo: {
+          cacheTtl: 0,
+        },
       },
     ).then((r) => r.json())
 
