@@ -8,6 +8,7 @@
   const isCookieSet = computed(() => !!cookieStore.cookie)
 
   const showCookieModal = ref(false)
+  const showCookieTutorialModal = ref(false)
   const cookie = ref('')
 
   watch(showCookieModal, (value) => {
@@ -37,7 +38,7 @@
 
 <template>
   <div>
-    <UModal v-model="showCookieModal" title="Cookie 管理">
+    <UModal v-model:open="showCookieModal" title="Cookie 管理">
       <UButton
         :icon="isCookieSet ? '' : 'i-heroicons-information-circle-20-solid'"
         :color="isCookieSet ? 'primary' : 'error'"
@@ -58,10 +59,35 @@
           <div>
             您输入的 Cookie
             保存在您浏览器里，他人无法访问，您可以随时清空。在查询数据时，为了解决跨域问题，您的
-            Cookie 会被临时发送到本项目的后端。后端<span
+            Cookie 会被临时发送到本项目的后端。
+          </div>
+          <div>
+            本项目仅仅为了方便个人分析数据，后端<span
               class="text-red-500 font-bold"
               >不会</span
-            >存储任何信息。
+            >存储任何信息。如果您有顾虑，可以在
+            <UButton
+              class="align-text-bottom -mb-1"
+              variant="subtle"
+              size="xs"
+              icon="i-grommet-icons:github"
+              to="https://github.com/AnotiaWang/siliconcloud-stats"
+              target="_blank"
+            >
+              GitHub
+            </UButton>
+            查看源代码或者自行部署。
+          </div>
+          <div class="mt-2">
+            <UButton
+              class="px-0"
+              variant="link"
+              color="primary"
+              icon="i-heroicons-information-circle-20-solid"
+              @click="showCookieTutorialModal = true"
+            >
+              如何获取 Cookie？
+            </UButton>
           </div>
         </div>
 
@@ -80,5 +106,7 @@
         </div>
       </template>
     </UModal>
+
+    <CookieTutorialModal v-model="showCookieTutorialModal" />
   </div>
 </template>
