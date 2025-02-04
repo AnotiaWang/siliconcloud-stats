@@ -37,5 +37,5 @@ export default {
       })
     }),
   ],
-  content: ['./**/*.vue'],
+  content: ['./app/**/*.vue'],
 }

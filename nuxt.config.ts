@@ -11,6 +11,9 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     '@nuxt/eslint',
     '@nuxt/ui',
+    'dayjs-nuxt',
+    'nuxt-echarts',
+    '@samk-dev/nuxt-vcalendar',
   ],
 
   plugins: [],
@@ -29,6 +32,7 @@ export default defineNuxtConfig({
     preference: 'system',
     dataValue: 'theme',
     classSuffix: '',
+    storage: 'cookie',
   },
 
   // Sitemap module configuration: https://nuxtseo.com/site-config/getting-started/how-it-works

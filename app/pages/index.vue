@@ -1,56 +1,108 @@
 <template>
-  <UContainer class="flex flex-col items-center px-4 py-10 gap-y-8 h-full">
-    <h1 class="text-[26px]">Nuxt & Nuxt UI</h1>
-    <div class="space-x-2">
-      <UButton
-        @click="
-          $colorMode.preference =
-            $colorMode.preference === 'light' ? 'dark' : 'light'
-        "
-      >
-        <template #leading>
-          <UIcon
-            :name="
-              $colorMode.preference === 'light'
-                ? 'i-heroicons-sun'
-                : 'i-heroicons-moon'
-            "
-          />
-        </template>
-        当前主题：{{ $colorMode.preference === 'light' ? 'Light' : 'Dark' }}
-      </UButton>
-    </div>
-    <div class="grid grid-cols-2 sm:flex flex-row items-center gap-2">
-      <UButton>按钮示例</UButton>
-      <UButton :loading="true" color="orange">按钮示例</UButton>
-      <UButton :disabled="true" color="red">按钮示例</UButton>
-      <UButton variant="outline" color="green">按钮示例</UButton>
+  <div class="container mx-auto p-4">
+    <div class="flex items-center mb-4">
+      <h1 class="text-2xl font-bold">SiliconCloud 使用量分析</h1>
+      <CookieManager class="ml-auto" />
+      <ColorModeButton class="ml-2" />
     </div>
 
-    <div class="flex flex-col sm:flex-row items-center gap-4">
-      <UToggle v-model="isLoading" size="lg">
-        <template #label>加载中</template>
-      </UToggle>
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-2">选择日期范围：</label>
+      <div class="flex gap-4">
+        <DateRangeSelector v-model="selectedDateRange" />
+        <UButton :loading="loading" @click="fetchCostData"> 查询 </UButton>
+      </div>
     </div>
-  </UContainer>
+
+    <div class="grid grid-cols-1 gap-4">
+      <ChartDailyTotalUsage :data="costData" />
+      <ChartModelUsageDistribution :data="costData" />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-  const isLoading = ref(true)
-  const alertTheme = ref<'success' | 'warning' | 'error' | 'info'>('success')
+  import type { DateRange } from '~/components/DateRangeSelector.vue'
+  import type { DailyCostData } from '~~/types/logic'
+
+  const dayjs = useDayjs()
+  const cookieStore = useCookieStore()
+  const toast = useToast()
+
+  const loading = ref(false)
+  const selectedDateRange = ref<DateRange>({
+    start: dayjs().subtract(2, 'day').toDate(),
+    end: new Date(),
+  })
+  const costData = ref<DailyCostData>({})
 
   onMounted(() => {
-    setInterval(() => {
-      isLoading.value = !isLoading.value
-      if (alertTheme.value === 'success') {
-        alertTheme.value = 'warning'
-      } else if (alertTheme.value === 'warning') {
-        alertTheme.value = 'error'
-      } else if (alertTheme.value === 'error') {
-        alertTheme.value = 'info'
-      } else {
-        alertTheme.value = 'success'
-      }
-    }, 2000)
+    watch(
+      selectedDateRange,
+      () => {
+        if (selectedDateRange.value) {
+          fetchCostData()
+        }
+      },
+      { immediate: true, flush: 'post' },
+    )
   })
+
+  async function fetchCostData() {
+    if (!selectedDateRange.value) return
+    loading.value = true
+
+    try {
+      const { start, end } = selectedDateRange.value
+      const dates: string[] = []
+      let current = dayjs(start)
+
+      // 生成日期范围内的所有日期
+      while (current.isSame(end, 'day') || current.isBefore(end, 'day')) {
+        dates.push(current.format('YYYY-MM-DD'))
+        current = current.add(1, 'day')
+      }
+
+      costData.value = {}
+
+      // 串行获取每一天的数据
+      for (const date of dates) {
+        try {
+          const resp = await $fetch('/api/daily-bills', {
+            method: 'POST',
+            body: {
+              cookie: cookieStore.cookie,
+              date,
+            },
+            ignoreResponseError: true,
+          })
+
+          if (!Array.isArray(resp)) {
+            // @ts-expect-error 如果忽略错误，resp 类型会变成 unknown
+            throw new Error(`获取 ${date} 的数据失败: ${resp.message}`)
+          }
+
+          costData.value[date] = resp
+        } catch (error) {
+          console.error(`获取 ${date} 的数据失败:`, error)
+          toast.add({
+            title: '获取数据失败',
+            description:
+              error instanceof Error ? error.message : '请检查网络连接',
+            color: 'red',
+          })
+          break // 遇到错误立即停止
+        }
+      }
+    } catch (error) {
+      console.error(error)
+      toast.add({
+        title: '获取数据失败',
+        description: error instanceof Error ? error.message : '请检查网络连接',
+        color: 'red',
+      })
+    } finally {
+      loading.value = false
+    }
+  }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-screen h-screen bg-white dark:bg-black dark:text-white transition-all"
+    class="w-full bg-white dark:bg-[#111729] dark:text-[#e5e7eb] transition-all"
   >
     <slot />
   </div>

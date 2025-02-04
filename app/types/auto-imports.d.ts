@@ -91,6 +91,7 @@ declare global {
   const unref: (typeof import('vue'))['unref']
   const useApolloClient: (typeof import('@vue/apollo-composable'))['useApolloClient']
   const useAttrs: (typeof import('vue'))['useAttrs']
+  const useCookieStore: typeof import('../stores/cookie')['useCookieStore']
   const useCssModule: (typeof import('vue'))['useCssModule']
   const useCssVars: (typeof import('vue'))['useCssVars']
   const useLazyQuery: (typeof import('@vue/apollo-composable'))['useLazyQuery']
@@ -121,5 +122,6 @@ declare module 'vue' {
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
+    readonly useCookieStore: UnwrapRef<typeof import('../stores/cookie')['useCookieStore']>
   }
 }
