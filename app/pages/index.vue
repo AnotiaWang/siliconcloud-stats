@@ -1,16 +1,20 @@
 <script setup lang="ts">
+  import { today, getLocalTimeZone } from '@internationalized/date'
+  import type { ShallowRef } from 'vue'
+  import type CookieManager from '~/components/CookieManager.vue'
   import type { DateRange } from '~/components/DateRangeSelector.vue'
   import type { DailyCostData } from '~~/types/logic'
 
-  const dayjs = useDayjs()
   const cookieStore = useCookieStore()
   const toast = useToast()
 
   const loading = ref(false)
-  const selectedDateRange = ref<DateRange>({
-    start: dayjs().subtract(2, 'day').toDate(),
-    end: new Date(),
-  })
+  const selectedDateRange = shallowRef({
+    start: today(getLocalTimeZone()).subtract({ days: 3 }),
+    end: today(getLocalTimeZone()),
+  }) as ShallowRef<DateRange>
+  const cookieManagerRef = ref<InstanceType<typeof CookieManager>>()
+  // API 返回的统计数据
   const costDataCache = ref<DailyCostData>({})
   const costData = ref<DailyCostData>({})
 
@@ -18,7 +22,7 @@
     watch(
       selectedDateRange,
       () => {
-        if (selectedDateRange.value) {
+        if (selectedDateRange.value.start && selectedDateRange.value.end) {
           fetchCostData()
         }
       },
@@ -28,17 +32,26 @@
 
   async function fetchCostData(useCache = true) {
     if (!selectedDateRange.value) return
+    if (!cookieStore.cookie) {
+      toast.add({
+        title: '请设置 Cookie',
+        color: 'error',
+        duration: 3000,
+      })
+      cookieManagerRef.value?.openCookieModal()
+      return
+    }
     loading.value = true
 
     try {
-      const { start, end } = selectedDateRange.value
+      let start = selectedDateRange.value.start
+      const end = selectedDateRange.value.end
       const dates: string[] = []
-      let current = dayjs(start)
 
       // 生成日期范围内的所有日期
-      while (current.isSame(end, 'day') || current.isBefore(end, 'day')) {
-        dates.push(current.format('YYYY-MM-DD'))
-        current = current.add(1, 'day')
+      while (start.compare(end) <= 0) {
+        dates.push(start.toString())
+        start = start.add({ days: 1 })
       }
 
       // 只有在不使用缓存时才清空数据
@@ -83,7 +96,8 @@
             title: '获取数据失败',
             description:
               error instanceof Error ? error.message : '请检查网络连接',
-            color: 'red',
+            color: 'error',
+            duration: 10_000,
           })
           break // 遇到错误立即停止
         }
@@ -93,7 +107,7 @@
       toast.add({
         title: '获取数据失败',
         description: error instanceof Error ? error.message : '请检查网络连接',
-        color: 'red',
+        color: 'error',
       })
     } finally {
       loading.value = false
@@ -105,7 +119,11 @@
   <div class="container mx-auto p-4">
     <div class="flex items-center mb-4">
       <h1 class="text-2xl font-bold">SiliconCloud 使用量分析</h1>
-      <CookieManager class="ml-auto" />
+      <CookieManager
+        ref="cookieManagerRef"
+        class="ml-auto"
+        @update="fetchCostData(false)"
+      />
       <ColorModeButton class="ml-2" />
     </div>
 

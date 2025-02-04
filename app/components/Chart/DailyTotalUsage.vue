@@ -31,6 +31,8 @@
     const types: LLMType[] = ['chat', 'reranker', 'embedding', 'text-to-image']
 
     return {
+      animation: true,
+      animationDuration: 500,
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -80,6 +82,6 @@
 <template>
   <div class="p-4 border rounded-lg">
     <h2 class="text-xl font-semibold mb-4">每日总使用量</h2>
-    <v-chart ref="chartRef" class="h-[400px]" :option="totalUsageOption" />
+    <v-chart ref="chartRef" class="!h-[400px]" :option="totalUsageOption" />
   </div>
 </template>

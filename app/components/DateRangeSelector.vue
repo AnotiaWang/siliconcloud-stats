@@ -1,14 +1,21 @@
 <script setup lang="ts">
+  import {
+    DateFormatter,
+    getLocalTimeZone,
+    today,
+    type CalendarDate,
+  } from '@internationalized/date'
+
   export interface DateRange {
-    start: Date
-    end: Date
+    start: CalendarDate
+    end: CalendarDate
   }
 
-  const colorMode = useColorMode()
-  const dayjs = useDayjs()
   const selected = defineModel<DateRange>({
     required: true,
   })
+
+  const df = new DateFormatter('zh-CN', { dateStyle: 'medium' })
 
   const ranges = [
     { label: '最近一周', days: 7 },
@@ -20,30 +27,34 @@
   ]
 
   function isRangeSelected(days: number) {
+    const now = today(getLocalTimeZone())
+    const start = now.subtract({ days })
     return (
-      dayjs(selected.value.start).isSame(
-        dayjs().subtract(days, 'day'),
-        'day',
-      ) && dayjs(selected.value.end).isSame(new Date(), 'day')
+      selected.value.start?.compare(start) === 0 &&
+      selected.value.end?.compare(now) === 0
     )
   }
 
   function selectRange(days: number) {
+    const now = today(getLocalTimeZone())
     selected.value = {
-      start: dayjs().subtract(days, 'day').toDate(),
-      end: new Date(),
+      start: now.subtract({ days }),
+      end: now,
     }
   }
 </script>
 
 <template>
-  <UPopover :popper="{ placement: 'bottom-start' }">
+  <UPopover>
     <UButton icon="i-heroicons-calendar-days-20-solid">
-      {{ dayjs(selected.start).format('YYYY-MM-DD') }} ~
-      {{ dayjs(selected.end).format('YYYY-MM-DD') }}
+      <!-- Nuxt UI 可能有 bug，在选择日期过程中两个值都会变成 undefined -->
+      <template v-if="selected.start && selected.end">
+        {{ df.format(selected.start.toDate(getLocalTimeZone())) }} ~
+        {{ df.format(selected.end.toDate(getLocalTimeZone())) }}
+      </template>
     </UButton>
 
-    <template #panel>
+    <template #content>
       <div
         class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800"
       >
@@ -52,7 +63,7 @@
             v-for="(range, index) in ranges"
             :key="index"
             :label="range.label"
-            color="gray"
+            color="neutral"
             variant="ghost"
             class="rounded-none px-6"
             :class="[
@@ -65,11 +76,12 @@
           />
         </div>
 
-        <VDatePicker
+        <UCalendar
           v-model="selected"
-          :model-modifiers="{ range: true }"
-          :is-dark="colorMode.preference === 'dark'"
-        />
+          class="p-3"
+          :number-of-months="2"
+          range
+        ></UCalendar>
       </div>
     </template>
   </UPopover>

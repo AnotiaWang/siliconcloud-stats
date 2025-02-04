@@ -10,24 +10,23 @@
     "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@internationalized/date": "^3.7.0",
     "@types/node": "^22.12.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2"
+    "eslint-plugin-prettier": "^5.2.2",
+    "tailwindcss": "^4.0.0"
   },
   "dependencies": {
     "@nuxt/devtools": "2.0.0-beta.3",
     "@nuxt/eslint": "1.0.0-rc.1",
-    "@nuxt/ui": "^2.21.0",
+    "@nuxt/ui": "3.0.0-alpha.12",
     "@nuxtjs/robots": "^5.1.1",
     "@nuxtjs/sitemap": "7.2.4",
     "@pinia/nuxt": "^0.9.0",
-    "@samk-dev/nuxt-vcalendar": "1.0.4",
     "@vueuse/core": "^12.5.0",
-    "dayjs-nuxt": "2.1.11",
     "nuxt": "^3.15.4",
     "nuxt-echarts": "0.2.4",
-    "unplugin-auto-import": "^19.0.0",
-    "unplugin-vue-components": "^28.0.0"
+    "unplugin-auto-import": "^19.0.0"
   }
 }

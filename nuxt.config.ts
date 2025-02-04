@@ -1,4 +1,3 @@
-import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -11,22 +10,13 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     '@nuxt/eslint',
     '@nuxt/ui',
-    'dayjs-nuxt',
     'nuxt-echarts',
-    '@samk-dev/nuxt-vcalendar',
   ],
 
   plugins: [],
 
-  ui: {
-    global: true,
-  },
 
-  tailwindcss: {
-    configPath: './app/tailwind.config.js',
-    exposeConfig: true,
-    viewer: true,
-  },
+  css: ['~/assets/css/main.css'],
 
   colorMode: {
     preference: 'system',
@@ -52,10 +42,6 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
-      Components({
-        dts: 'types/components.d.ts',
-        resolvers: [],
-      }),
       AutoImport({
         imports: ['pinia'],
         dts: 'types/auto-imports.d.ts',
