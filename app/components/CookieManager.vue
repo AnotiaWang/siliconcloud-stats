@@ -59,13 +59,13 @@
           <div>
             您输入的 Cookie
             保存在您浏览器里，他人无法访问，您可以随时清空。在查询数据时，为了解决跨域问题，您的
-            Cookie 会被临时发送到本项目的后端。
+            Cookie 会被临时发送到本项目的后端（基于腾讯云 EdgeOne Pages
+            边缘函数），用后即焚。
           </div>
           <div>
-            本项目仅仅为了方便个人分析数据，后端<span
-              class="text-red-500 font-bold"
-              >不会</span
-            >存储任何信息。如果您有顾虑，可以在
+            本项目仅仅为了方便个人分析数据，<span class="text-red-500 font-bold"
+              >不会存储任何信息。</span
+            >如果您有顾虑，可以在
             <UButton
               class="align-text-bottom -mb-1"
               variant="subtle"

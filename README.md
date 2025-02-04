@@ -1,5 +1,10 @@
 # SiliconCloud Stats
 
+<div style="display: flex; gap: 10px">
+  <img src="public/images/readme-showcase-total.webp" alt="Showcase: Total Usage" />
+  <img src="public/images/readme-showcase-per-model.webp" alt="Showcase: Per Model Usage" />
+</div>
+
 SiliconCloud Stats 是一个用于分析 SiliconCloud 平台使用情况的工具。通过输入 Cookie，可以拉取 SiliconCloud 控制台 API 来实现各种分析功能，如 token 用量分析等。
 
 ## 功能特点
@@ -12,20 +17,23 @@ SiliconCloud Stats 是一个用于分析 SiliconCloud 平台使用情况的工�
 ## 技术栈
 
 - **框架**
+
   - [Nuxt 3](https://nuxt.com/) - Vue.js 的全栈框架
   - [Vue 3](https://vuejs.org/) - 渐进式 JavaScript 框架
 
 - **UI 组件**
+
   - [Nuxt UI](https://ui.nuxt.com/) - Nuxt 的官方 UI 组件库
-  - [Heroicons](https://heroicons.com/) - SVG 图标库
 
 - **状态管理**
+
   - [Pinia](https://pinia.vuejs.org/) - Vue 的状态管理库
 
 - **开发工具**
   - [TypeScript](https://www.typescriptlang.org/) - JavaScript 的超集
   - [ESLint](https://eslint.org/) - 代码检查工具
   - [Prettier](https://prettier.io/) - 代码格式化工具
+  - 腾讯云 EdgeOne Pages 边缘函数
 
 ## 开发
 
