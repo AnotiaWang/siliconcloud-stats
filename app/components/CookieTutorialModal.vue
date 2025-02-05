@@ -10,7 +10,7 @@
           登录
           <NuxtLink
             class="text-violet-500"
-            to="https://cloud.siliconflow.cn"
+            to="https://cloud.siliconflow.cn/i/J0NHrrX8"
             target="_blank"
           >
             cloud.siliconflow.cn
@@ -26,7 +26,10 @@
           在 SiliconCloud
           里，随便切换一个页面（比如“文本对话”页），可以看到开发者工具里多出了几个请求。
         </li>
-        <li>点击最顶上的请求，找到“请求标头”，复制 Cookie 内容。</li>
+        <li>
+          点击最顶上的请求，找到“请求标头”，复制 Cookie 内容。Cookie
+          内容应该包含 <UKbd>__SF_auth.session-token=xxx </UKbd>
+        </li>
       </ol>
       <img class="my-3" src="/images/cookie-tutorial.webp" mode="aspectFit" />
       <div class="text-orange-500">

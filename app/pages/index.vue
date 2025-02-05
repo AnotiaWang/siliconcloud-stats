@@ -117,19 +117,21 @@
 
 <template>
   <div class="container mx-auto p-4">
-    <div class="flex items-center mb-4">
+    <div class="flex flex-col sm:flex-row items-center mb-4 gap-2">
       <h1 class="text-2xl font-bold">SiliconCloud 使用量分析</h1>
-      <CookieManager
-        ref="cookieManagerRef"
-        class="ml-auto"
-        @update="fetchCostData(false)"
-      />
-      <ColorModeButton class="ml-2" />
+      <div class="flex sm:items-center sm:ml-auto">
+        <CookieManager
+          ref="cookieManagerRef"
+          class="ml-auto"
+          @update="fetchCostData(false)"
+        />
+        <ColorModeButton class="ml-2" />
+      </div>
     </div>
 
     <div class="mb-4">
       <label class="block text-sm font-medium mb-2">选择日期范围：</label>
-      <div class="flex gap-4">
+      <div class="flex gap-2">
         <DateRangeSelector v-model="selectedDateRange" />
         <UButton
           icon="i-heroicons-arrow-path-20-solid"

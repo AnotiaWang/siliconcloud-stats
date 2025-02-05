@@ -5,6 +5,7 @@
     today,
     type CalendarDate,
   } from '@internationalized/date'
+  import { useMediaQuery } from '@vueuse/core'
 
   export interface DateRange {
     start: CalendarDate
@@ -14,6 +15,7 @@
   const selected = defineModel<DateRange>({
     required: true,
   })
+  const isLargeScreen = useMediaQuery('(min-width: 640px)')
 
   const df = new DateFormatter('zh-CN', { dateStyle: 'medium' })
 
@@ -79,7 +81,7 @@
         <UCalendar
           v-model="selected"
           class="p-3"
-          :number-of-months="2"
+          :number-of-months="isLargeScreen ? 2 : 1"
           range
         ></UCalendar>
       </div>
