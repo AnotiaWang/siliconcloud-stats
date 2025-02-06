@@ -270,7 +270,7 @@
     }
   })
 
-  defineExpose({ fetchAllData })
+  defineExpose({ refetch: fetchAllData })
 </script>
 
 <template>
