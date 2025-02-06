@@ -25,12 +25,11 @@
     watch(
       selectedDateRange,
       () => {
-        // FIXME 目前会触发两次，原因未知
         if (selectedDateRange.value.start && selectedDateRange.value.end) {
           fetchCostData()
         }
       },
-      { immediate: true },
+      { immediate: true, deep: false },
     )
   })
 
