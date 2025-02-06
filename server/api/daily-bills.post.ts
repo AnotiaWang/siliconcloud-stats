@@ -1,4 +1,4 @@
-import type { DailyBillResult, LLMType } from '~~/types/logic'
+import type { DailyBillResultItem, LLMType } from '~~/types/logic'
 import { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
       })
     }
     const bills = resp.data.results
-    const results: DailyBillResult[] = []
+    const results: DailyBillResultItem[] = []
 
     // 按照 type 分组处理数据
     const typeGroups = new Map<
@@ -44,7 +44,6 @@ export default defineEventHandler(async (event) => {
     >()
 
     // 初始化分组
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bills.forEach((bill: any) => {
       const type = bill.subType as LLMType
       if (!typeGroups.has(type)) {

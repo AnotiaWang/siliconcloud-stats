@@ -10,7 +10,7 @@ SiliconCloud Stats 是一个用于分析 SiliconCloud 平台使用情况的工�
 ## 功能特点
 
 - 通过 Cookie 认证访问 SiliconCloud API
-- Token 用量分析
+- Token 用量分析：按 API Key 和模型分别统计 token 用量的每日/每月走势
 - 明暗主题切换
 - 响应式设计，支持移动端
 

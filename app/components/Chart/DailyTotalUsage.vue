@@ -6,12 +6,12 @@
   } from 'echarts/components'
   import { BarChart } from 'echarts/charts'
   import { use } from 'echarts/core'
-  import type { DailyCostData, LLMType } from '~~/types/logic'
+  import type { DailyBillResults, LLMType } from '~~/types/logic'
   import type { EChartsOption } from 'echarts'
   import type { VChart } from '#components'
 
   const props = defineProps<{
-    data: DailyCostData
+    data: DailyBillResults
   }>()
 
   // 注册 echarts 插件

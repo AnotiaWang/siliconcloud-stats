@@ -2,8 +2,9 @@
   import { today, getLocalTimeZone } from '@internationalized/date'
   import type { ShallowRef } from 'vue'
   import type CookieManager from '~/components/CookieManager.vue'
+  import type ChartMonthlyUsage from '~/components/Chart/MonthlyUsage.vue'
   import type { DateRange } from '~/components/DateRangeSelector.vue'
-  import type { DailyCostData } from '~~/types/logic'
+  import type { DailyBillResults } from '~~/types/logic'
 
   const cookieStore = useCookieStore()
   const toast = useToast()
@@ -13,20 +14,23 @@
     start: today(getLocalTimeZone()).subtract({ days: 3 }),
     end: today(getLocalTimeZone()),
   }) as ShallowRef<DateRange>
-  const cookieManagerRef = ref<InstanceType<typeof CookieManager>>()
   // API 返回的统计数据
-  const costDataCache = ref<DailyCostData>({})
-  const costData = ref<DailyCostData>({})
+  const costDataCache = ref<DailyBillResults>({})
+  const costData = ref<DailyBillResults>({})
 
-  onMounted(() => {
+  const cookieManagerRef = ref<InstanceType<typeof CookieManager>>()
+  const monthlyUsageRef = ref<InstanceType<typeof ChartMonthlyUsage>>()
+
+  onNuxtReady(() => {
     watch(
       selectedDateRange,
       () => {
+        // FIXME 目前会触发两次，原因未知
         if (selectedDateRange.value.start && selectedDateRange.value.end) {
           fetchCostData()
         }
       },
-      { immediate: true, flush: 'post' },
+      { immediate: true },
     )
   })
 
@@ -41,6 +45,7 @@
       cookieManagerRef.value?.openCookieModal()
       return
     }
+    if (loading.value) return
     loading.value = true
 
     try {
@@ -113,6 +118,11 @@
       loading.value = false
     }
   }
+
+  function onCookieUpdate() {
+    fetchCostData()
+    monthlyUsageRef.value?.fetchAllData()
+  }
 </script>
 
 <template>
@@ -123,7 +133,7 @@
         <CookieManager
           ref="cookieManagerRef"
           class="ml-auto"
-          @update="fetchCostData(false)"
+          @update="onCookieUpdate"
         />
         <ColorModeButton class="ml-2" />
       </div>
@@ -146,6 +156,7 @@
     <div class="grid grid-cols-1 gap-4">
       <ChartDailyTotalUsage :data="costData" />
       <ChartModelUsageDistribution :data="costData" />
+      <ChartMonthlyUsage ref="monthlyUsageRef" />
     </div>
   </div>
 </template>

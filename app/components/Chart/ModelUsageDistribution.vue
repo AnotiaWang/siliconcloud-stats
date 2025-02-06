@@ -1,6 +1,5 @@
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-  import type { DailyCostData } from '~~/types/logic'
+  import type { DailyBillResults } from '~~/types/logic'
   import {
     TooltipComponent,
     GridComponent,
@@ -12,7 +11,7 @@
   import type { VChart } from '#components'
 
   const props = defineProps<{
-    data: DailyCostData
+    data: DailyBillResults
   }>()
 
   // 注册 echarts 插件
@@ -74,7 +73,7 @@
       legend: {
         type: 'scroll',
         orient: isNarrowScreen.value ? 'horizontal' : 'vertical',
-        right: isNarrowScreen.value ? 'center' : 0,
+        left: isNarrowScreen.value ? 'center' : '70%',
         top: isNarrowScreen.value ? 0 : 'middle',
         width: isNarrowScreen.value ? '90%' : 'auto',
         height: isNarrowScreen.value ? 'auto' : '80%',
