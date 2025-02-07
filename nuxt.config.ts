@@ -27,7 +27,26 @@ export default defineNuxtConfig({
 
   // Sitemap module configuration: https://nuxtseo.com/site-config/getting-started/how-it-works
   site: {
-    url: 'https://tdesign-vue-nuxt-starter.ataw.top', // FIXME: Your website URL
+    url: 'https://siliconcloud-stats.ataw.top',
+    name: 'SiliconCloud Stats',
+    description: 'SiliconCloud 平台使用情况分析工具，提供 token 用量分析等功能',
+    defaultLocale: 'zh-CN',
+  },
+
+  robots: {
+    // 配置 robots.txt
+    allow: '/',
+    sitemap: 'https://siliconcloud-stats.ataw.top/sitemap.xml', // 请替换为实际的网站 URL
+  },
+
+  sitemap: {
+    // 配置 sitemap
+    exclude: ['/api/**'],
+    defaults: {
+      changefreq: 'daily',
+      priority: 0.8,
+      lastmod: new Date().toISOString(),
+    },
   },
 
   nitro: {
