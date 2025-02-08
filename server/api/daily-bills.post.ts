@@ -26,15 +26,23 @@ export default defineEventHandler(async (event) => {
           cookie,
         },
       },
-    ).then((r) => r.json())
-
-    if (!resp.status || !resp.ok || !resp.data?.results) {
+    )
+    const bodyText = await resp.text()
+    if (bodyText.includes('登录')) {
       throw createError({
-        statusCode: resp.code,
-        message: `硅基流动 API 返回报错：${resp.message}`,
+        statusCode: 401,
+        message: 'Cookie 失效',
       })
     }
-    const bills = resp.data.results
+    const body = JSON.parse(bodyText)
+
+    if (!body.status || !body.ok || !body.data?.results) {
+      throw createError({
+        statusCode: body.code,
+        message: `硅基流动 API 返回报错：${body.message}`,
+      })
+    }
+    const bills = body.data.results
     const results: DailyBillResultItem[] = []
 
     // 按照 type 分组处理数据

@@ -19,19 +19,27 @@ export default defineEventHandler(async (event) => {
 
   try {
     // 获取账单数据
-    const billResp = await fetch(
+    const resp = await fetch(
       `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
       {
         headers: {
           cookie,
         },
       },
-    ).then((r) => r.json())
-
-    if (!billResp.status || !billResp.ok || !billResp.data?.results) {
+    )
+    const bodyText = await resp.text()
+    if (bodyText.includes('登录')) {
       throw createError({
-        statusCode: billResp.code,
-        message: `硅基流动 API 返回报错：${billResp.message}`,
+        statusCode: 401,
+        message: 'Cookie 失效',
+      })
+    }
+    const body = JSON.parse(bodyText)
+
+    if (!body.status || !body.ok || !body.data?.results) {
+      throw createError({
+        statusCode: body.code,
+        message: `硅基流动 API 返回报错：${body.message}`,
       })
     }
 
@@ -44,12 +52,20 @@ export default defineEventHandler(async (event) => {
           cookie,
         },
       },
-    ).then((r) => r.json())
-
-    if (!apikeyResp.status || !apikeyResp.data?.records) {
+    )
+    const apikeyBodyText = await apikeyResp.text()
+    if (apikeyBodyText.includes('登录')) {
       throw createError({
-        statusCode: apikeyResp.code,
-        message: `硅基流动 API 返回报错：${apikeyResp.message}`,
+        statusCode: 401,
+        message: 'Cookie 失效',
+      })
+    }
+    const apikeyData = JSON.parse(apikeyBodyText)
+
+    if (!apikeyData.status || !apikeyData.data?.records) {
+      throw createError({
+        statusCode: apikeyData.code,
+        message: `硅基流动 API 返回报错：${apikeyData.message}`,
       })
     }
 
@@ -58,7 +74,7 @@ export default defineEventHandler(async (event) => {
       string,
       { isDisabled: boolean; name: string }
     >(
-      apikeyResp.data.records.map((key: any) => [
+      apikeyData.data.records.map((key: any) => [
         key.secretKey,
         {
           isDisabled: key.status === 'disabled',
@@ -68,7 +84,7 @@ export default defineEventHandler(async (event) => {
     )
 
     // 组合数据
-    const results = billResp.data.results.map(
+    const results = body.data.results.map(
       (bill: any) =>
         ({
           name:

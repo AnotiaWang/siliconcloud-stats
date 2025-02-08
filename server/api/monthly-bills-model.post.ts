@@ -25,16 +25,24 @@ export default defineEventHandler(async (event) => {
           cookie,
         },
       },
-    ).then((r) => r.json())
-
-    if (!resp.status || !resp.ok || !resp.data?.results) {
+    )
+    const bodyText = await resp.text()
+    if (bodyText.includes('登录')) {
       throw createError({
-        statusCode: resp.code,
-        message: `硅基流动 API 返回报错：${resp.message}`,
+        statusCode: 401,
+        message: 'Cookie 失效',
+      })
+    }
+    const body = JSON.parse(bodyText)
+
+    if (!body.status || !body.ok || !body.data?.results) {
+      throw createError({
+        statusCode: body.code,
+        message: `硅基流动 API 返回报错：${body.message}`,
       })
     }
 
-    const results = resp.data.results.map(
+    const results = body.data.results.map(
       (model: any) =>
         ({
           modelName: model.modelName,

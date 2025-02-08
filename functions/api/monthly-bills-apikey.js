@@ -37,7 +37,7 @@ export async function onRequestPost(context) {
 
   try {
     // 获取账单数据
-    const billResp = await fetch(
+    const resp = await fetch(
       `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
       {
         headers: {
@@ -47,7 +47,22 @@ export async function onRequestPost(context) {
           cacheTtl: 0,
         },
       },
-    ).then((r) => r.json())
+    )
+    const bodyText = await resp.text()
+    if (bodyText.includes('登录')) {
+      return new Response(
+        JSON.stringify({
+          message: 'Cookie 失效',
+        }),
+        {
+          status: 401,
+          headers: {
+            'content-type': 'application/json; charset=UTF-8',
+          },
+        },
+      )
+    }
+    const billResp = JSON.parse(bodyText)
 
     if (!billResp.status || !billResp.ok || !billResp.data?.results) {
       return new Response(
@@ -75,15 +90,30 @@ export async function onRequestPost(context) {
           cacheTtl: 0,
         },
       },
-    ).then((r) => r.json())
-
-    if (!apikeyResp.status || !apikeyResp.data?.records) {
+    )
+    const apikeyBodyText = await apikeyResp.text()
+    if (apikeyBodyText.includes('登录')) {
       return new Response(
         JSON.stringify({
-          message: `硅基流动 API 返回报错：${apikeyResp.message}`,
+          message: 'Cookie 失效',
         }),
         {
-          status: apikeyResp.code || 500,
+          status: 401,
+          headers: {
+            'content-type': 'application/json; charset=UTF-8',
+          },
+        },
+      )
+    }
+    const apikeyData = JSON.parse(apikeyBodyText)
+
+    if (!apikeyData.status || !apikeyData.data?.records) {
+      return new Response(
+        JSON.stringify({
+          message: `硅基流动 API 返回报错：${apikeyData.message}`,
+        }),
+        {
+          status: apikeyData.code || 500,
           headers: {
             'content-type': 'application/json; charset=UTF-8',
           },
@@ -93,7 +123,7 @@ export async function onRequestPost(context) {
 
     // 创建 API Key 状态映射
     const apikeyStatusMap = new Map(
-      apikeyResp.data.records.map((key) => [
+      apikeyData.data.records.map((key) => [
         key.secretKey,
         {
           isDisabled: key.status === 'disabled',

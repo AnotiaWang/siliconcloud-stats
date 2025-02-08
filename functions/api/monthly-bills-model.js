@@ -48,15 +48,30 @@ export async function onRequestPost(context) {
           cacheTtl: 0,
         },
       },
-    ).then((r) => r.json())
-
-    if (!resp.status || !resp.ok || !resp.data?.results) {
+    )
+    const bodyText = await resp.text()
+    if (bodyText.includes('登录')) {
       return new Response(
         JSON.stringify({
-          message: `硅基流动 API 返回报错：${resp.message}`,
+          message: 'Cookie 失效',
         }),
         {
-          status: resp.code || 500,
+          status: 401,
+          headers: {
+            'content-type': 'application/json; charset=UTF-8',
+          },
+        },
+      )
+    }
+    const body = JSON.parse(bodyText)
+
+    if (!body.status || !body.ok || !body.data?.results) {
+      return new Response(
+        JSON.stringify({
+          message: `硅基流动 API 返回报错：${body.message}`,
+        }),
+        {
+          status: body.code || 500,
           headers: {
             'content-type': 'application/json; charset=UTF-8',
           },
@@ -65,7 +80,7 @@ export async function onRequestPost(context) {
     }
 
     /** @type {MonthlyModelBillResult[]} */
-    const results = resp.data.results.map((model) => ({
+    const results = body.data.results.map((model) => ({
       modelName: model.modelName,
       subType: model.subType,
       unitAmount: model.unitAmount,
