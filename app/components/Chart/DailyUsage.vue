@@ -1,11 +1,4 @@
 <script setup lang="ts">
-  import {
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-  } from 'echarts/components'
-  import { BarChart } from 'echarts/charts'
-  import { use } from 'echarts/core'
   import { today, getLocalTimeZone } from '@internationalized/date'
   import type { DailyBillResults, LLMType } from '~~/types/logic'
   import type { EChartsOption } from 'echarts'
@@ -27,18 +20,7 @@
 
   const chartRef = ref<InstanceType<typeof VChart>>()
   const { isNarrowScreen } = useChartAutoResize(chartRef)
-  const {
-    isDark,
-    getBaseChartOption,
-    getLegendOption,
-    getAxisOption,
-    formatTooltip,
-  } = useChart()
-
-  // 注册 echarts 插件
-  use([TooltipComponent, GridComponent, LegendComponent, BarChart])
-
-  const colorMode = useColorMode()
+  const { getBaseChartOption, getLegendOption, getAxisOption, formatTooltip } = useChart()
 
   // 是否显示模型使用量
   const showModelUsage = ref(false)
@@ -115,8 +97,7 @@
           console.error(`获取 ${date} 的数据失败:`, error)
           toast.add({
             title: '获取数据失败',
-            description:
-              error instanceof Error ? error.message : '请检查网络连接',
+            description: error instanceof Error ? error.message : '请检查网络连接',
             color: 'error',
             duration: 10_000,
           })
@@ -183,12 +164,7 @@
       }
     } else {
       // 总使用量视图
-      const types: LLMType[] = [
-        'chat',
-        'reranker',
-        'embedding',
-        'text-to-image',
-      ]
+      const types: LLMType[] = ['chat', 'reranker', 'embedding', 'text-to-image']
 
       return {
         ...getBaseChartOption(isNarrowScreen.value),
@@ -228,22 +204,11 @@
         <div>
           <h2 class="text-xl font-semibold">每日使用统计</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {{
-              showModelUsage
-                ? '按模型名称展示 Token 使用量'
-                : '按模型种类展示 Token 使用量'
-            }}
+            {{ showModelUsage ? '按模型名称展示 Token 使用量' : '按模型种类展示 Token 使用量' }}
           </p>
         </div>
         <div class="flex items-center gap-4">
-          <UButton
-            icon="i-heroicons-arrow-path-20-solid"
-            :loading="loading"
-            @click="fetchCostData(false)"
-            size="sm"
-          >
-            刷新
-          </UButton>
+          <UButton icon="i-heroicons-arrow-path-20-solid" :loading="loading" @click="fetchCostData(false)" size="sm"> 刷新 </UButton>
         </div>
       </div>
 

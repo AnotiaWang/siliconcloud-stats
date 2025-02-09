@@ -6,16 +6,10 @@
   import type { EChartsOption } from 'echarts'
   import type { VChart } from '#components'
 
-  const colorMode = useColorMode()
   const chartRef = ref<InstanceType<typeof VChart>>()
   const { isNarrowScreen } = useChartAutoResize(chartRef)
-  const {
-    isDark,
-    getBaseChartOption,
-    getLegendOption,
-    getAxisOption,
-    formatTooltip,
-  } = useChart()
+  const { getBaseChartOption, getLegendOption, getAxisOption, formatTooltip } =
+    useChart()
 
   // 是否按 API Key 分组显示
   const showByApiKey = ref(false)
@@ -108,8 +102,7 @@
 
   // 图表配置
   const chartOption = computed<EChartsOption>(() => {
-    if (loading.value) return {}
-
+    if (!monthlyData.value) return {}
     if (showByApiKey.value) {
       // API Key 视图
       // 收集所有月份中出现的 API Keys
