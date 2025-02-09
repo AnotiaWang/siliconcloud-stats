@@ -143,6 +143,35 @@
         axisPointer: {
           type: 'shadow',
         },
+        formatter: function (params: any[]) {
+          const date = params[0].name
+          let result = `<b>${date}</b><br/>`
+          let total = 0
+
+          // 按 token 数量从大到小排序
+          const sortedParams = [...params].sort((a, b) => b.value - a.value)
+
+          sortedParams.forEach((param) => {
+            if (param.value > 0) {
+              result += `<div class="flex items-center justify-between gap-4">
+                <div>${param.marker}${param.seriesName}</div>
+                <div class="font-bold">${param.value}</div>
+              </div>`
+              total += param.value
+            }
+          })
+
+          if (params.length > 1) {
+            result += `<div class="mt-2 pt-2 border-t border-gray-200">
+              <div class="flex items-center justify-between gap-4">
+                <div>总计</div>
+                <div class="font-bold">${total}</div>
+              </div>
+            </div>`
+          }
+
+          return result
+        } as any,
       },
       legend: {
         data: types,
@@ -212,15 +241,29 @@
         formatter: function (params: any[]) {
           const date = params[0].name
           let result = `<b>${date}</b><br/>`
+          let total = 0
 
-          params.forEach((param) => {
-            if (param.value) {
+          // 按 token 数量从大到小排序
+          const sortedParams = [...params].sort((a, b) => b.value - a.value)
+
+          sortedParams.forEach((param) => {
+            if (param.value > 0) {
               result += `<div class="flex items-center justify-between gap-4">
                 <div>${param.marker}${param.seriesName}</div>
                 <div class="font-bold">${param.value}</div>
               </div>`
+              total += param.value
             }
           })
+
+          if (params.length > 1) {
+            result += `<div class="mt-2 pt-2 border-t border-gray-200">
+              <div class="flex items-center justify-between gap-4">
+                <div>总计</div>
+                <div class="font-bold">${total}</div>
+              </div>
+            </div>`
+          }
 
           return result
         } as any,
