@@ -1,22 +1,21 @@
 <script setup lang="ts">
-  import {
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-  } from 'echarts/components'
-  import { BarChart } from 'echarts/charts'
-  import { use } from 'echarts/core'
-  import type { EChartsOption } from 'echarts'
-  import type { VChart } from '#components'
   import type {
     MonthlyModelBillResult,
     MonthlyApikeyBillResult,
   } from '~~/types/logic'
+  import type { EChartsOption } from 'echarts'
+  import type { VChart } from '#components'
 
   const colorMode = useColorMode()
   const chartRef = ref<InstanceType<typeof VChart>>()
   const { isNarrowScreen } = useChartAutoResize(chartRef)
-  const isDark = computed(() => colorMode.value === 'dark')
+  const {
+    isDark,
+    getBaseChartOption,
+    getLegendOption,
+    getAxisOption,
+    formatTooltip,
+  } = useChart()
 
   // 是否按 API Key 分组显示
   const showByApiKey = ref(false)
@@ -27,9 +26,6 @@
   const yearOptions = Array.from({ length: currentYear - 2023 }, (_, i) => {
     return String(2024 + i)
   })
-
-  // 注册 echarts 插件
-  use([TooltipComponent, GridComponent, LegendComponent, BarChart])
 
   // 存储每个月的数据
   const monthlyData = ref<
@@ -114,23 +110,6 @@
   const chartOption = computed<EChartsOption>(() => {
     if (loading.value) return {}
 
-    const commonLegendOptions: EChartsOption['legend'] = {
-      type: 'scroll',
-      orient: isNarrowScreen.value ? 'horizontal' : 'vertical',
-      left: isNarrowScreen.value ? 'center' : '70%',
-      top: isNarrowScreen.value ? 0 : 'middle',
-      width: isNarrowScreen.value ? '90%' : 'auto',
-      height: isNarrowScreen.value ? 'auto' : '80%',
-      pageButtonPosition: isNarrowScreen.value ? 'end' : 'start',
-      textStyle: { color: isDark.value ? '#fff' : '#000' },
-    }
-    const gridOptions: EChartsOption['grid'] = {
-      left: isNarrowScreen.value ? '5%' : '5%',
-      right: isNarrowScreen.value ? '5%' : '32%',
-      top: '80',
-      containLabel: true,
-    }
-
     if (showByApiKey.value) {
       // API Key 视图
       // 收集所有月份中出现的 API Keys
@@ -143,11 +122,9 @@
       const apiKeys = Array.from(apiKeySet)
 
       return {
-        animation: true,
-        animationDuration: 500,
+        ...getBaseChartOption(isNarrowScreen.value),
         tooltip: {
-          trigger: 'axis',
-          axisPointer: { type: 'shadow' },
+          ...getBaseChartOption(isNarrowScreen.value).tooltip,
           formatter: (params: any) => {
             const month = params[0].name
             let result = `<b>${month}</b><br/>`
@@ -178,29 +155,8 @@
             return result
           },
         },
-        legend: {
-          ...commonLegendOptions,
-          data: apiKeys,
-        },
-        grid: gridOptions,
-        xAxis: {
-          type: 'category',
-          data: months.value,
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-            interval: 0,
-            rotate: 45,
-          },
-        },
-        yAxis: {
-          type: 'value',
-          name: '金额 (¥)',
-          nameTextStyle: { color: isDark.value ? '#fff' : '#000' },
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-            formatter: (value: number) => value.toFixed(4),
-          },
-        },
+        legend: getLegendOption(isNarrowScreen.value, apiKeys),
+        ...getAxisOption(months.value, '金额 (¥)'),
         series: apiKeys.map((name) => ({
           name,
           type: 'bar',
@@ -214,7 +170,7 @@
             return item?.price || 0
           }),
         })),
-      } satisfies EChartsOption
+      }
     } else {
       // 模型视图
       // 收集所有月份中出现的模型
@@ -227,32 +183,13 @@
       const models = Array.from(modelSet)
 
       return {
-        animation: true,
-        animationDuration: 500,
+        ...getBaseChartOption(isNarrowScreen.value),
         tooltip: {
-          trigger: 'axis',
-          axisPointer: { type: 'shadow' },
+          ...getBaseChartOption(isNarrowScreen.value).tooltip,
+          formatter: formatTooltip,
         },
-        legend: {
-          ...commonLegendOptions,
-          data: models,
-        },
-        grid: gridOptions,
-        xAxis: {
-          type: 'category',
-          data: months.value,
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-            interval: 0,
-            rotate: 45,
-          },
-        },
-        yAxis: {
-          type: 'value',
-          name: 'Token 数量',
-          nameTextStyle: { color: isDark.value ? '#fff' : '#000' },
-          axisLabel: { color: isDark.value ? '#fff' : '#000' },
-        },
+        legend: getLegendOption(isNarrowScreen.value, models),
+        ...getAxisOption(months.value),
         series: models.map((modelName) => ({
           name: modelName,
           type: 'bar',
@@ -266,7 +203,7 @@
             return item ? parseInt(item.tokens) : 0
           }),
         })),
-      } satisfies EChartsOption
+      }
     }
   })
 
@@ -277,7 +214,7 @@
   <div class="p-4 border rounded-lg">
     <div class="flex flex-col gap-4 mb-4">
       <!-- 标题和刷新按钮 -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-semibold">月度使用统计</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -300,8 +237,8 @@
 
       <!-- 控制选项 -->
       <div class="flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2">
-          <span class="text-sm whitespace-nowrap">年份</span>
+        <div class="flex items-center gap-2 text-xs">
+          <span>年份</span>
           <USelect
             v-model="selectedYear"
             :items="yearOptions"
@@ -309,8 +246,8 @@
             size="sm"
           />
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm whitespace-nowrap">API key 视图</span>
+        <div class="flex items-center gap-2 text-xs">
+          <span>API key 视图</span>
           <USwitch v-model="showByApiKey" :disabled="loading" />
         </div>
       </div>

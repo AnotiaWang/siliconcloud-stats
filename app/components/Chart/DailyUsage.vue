@@ -25,14 +25,20 @@
   const costDataCache = ref<DailyBillResults>({})
   const costData = ref<DailyBillResults>({})
 
+  const chartRef = ref<InstanceType<typeof VChart>>()
+  const { isNarrowScreen } = useChartAutoResize(chartRef)
+  const {
+    isDark,
+    getBaseChartOption,
+    getLegendOption,
+    getAxisOption,
+    formatTooltip,
+  } = useChart()
+
   // 注册 echarts 插件
   use([TooltipComponent, GridComponent, LegendComponent, BarChart])
 
   const colorMode = useColorMode()
-
-  const chartRef = ref<InstanceType<typeof VChart>>()
-  const { isNarrowScreen } = useChartAutoResize(chartRef)
-  const isDark = computed(() => colorMode.value === 'dark')
 
   // 是否显示模型使用量
   const showModelUsage = ref(false)
@@ -148,80 +154,13 @@
       const models = Array.from(modelSet)
 
       return {
-        animation: true,
-        animationDuration: 500,
+        ...getBaseChartOption(isNarrowScreen.value),
         tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'shadow',
-          },
-          // 用自定义 formatter 只显示非零值
-          formatter: function (params: any[]) {
-            const date = params[0].name
-            let result = `<b>${date}</b><br/>`
-            let total = 0
-
-            // 按 token 数量从大到小排序
-            const sortedParams = [...params].sort((a, b) => b.value - a.value)
-
-            sortedParams.forEach((param) => {
-              if (param.value > 0) {
-                result += `<div class="flex items-center justify-between gap-4">
-                  <div>${param.marker}${param.seriesName}</div>
-                  <div class="font-bold">${param.value}</div>
-                </div>`
-                total += param.value
-              }
-            })
-
-            if (params.length > 1) {
-              result += `<div class="mt-2 pt-2 border-t border-gray-200">
-                <div class="flex items-center justify-between gap-4">
-                  <div>总计</div>
-                  <div class="font-bold">${total}</div>
-                </div>
-              </div>`
-            }
-
-            return result
-          } as any,
+          ...getBaseChartOption(isNarrowScreen.value).tooltip,
+          formatter: formatTooltip,
         },
-        grid: {
-          left: isNarrowScreen.value ? '5%' : '5%',
-          right: isNarrowScreen.value ? '5%' : '32%',
-          top: '80',
-          containLabel: true,
-        },
-        legend: {
-          type: 'scroll',
-          orient: isNarrowScreen.value ? 'horizontal' : 'vertical',
-          left: isNarrowScreen.value ? 'center' : '70%',
-          top: isNarrowScreen.value ? 0 : 'middle',
-          width: isNarrowScreen.value ? '90%' : 'auto',
-          height: isNarrowScreen.value ? 'auto' : '80%',
-          pageButtonPosition: isNarrowScreen.value ? 'end' : 'start',
-          data: models,
-          textStyle: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
-        xAxis: {
-          type: 'category',
-          data: dates,
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
-        yAxis: {
-          type: 'value',
-          name: 'Token 数量',
-          nameTextStyle: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
+        legend: getLegendOption(isNarrowScreen.value, models),
+        ...getAxisOption(dates),
         series: models.map((modelName) => ({
           name: modelName,
           type: 'bar',
@@ -252,66 +191,13 @@
       ]
 
       return {
-        animation: true,
-        animationDuration: 500,
+        ...getBaseChartOption(isNarrowScreen.value),
         tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'shadow',
-          },
-          formatter: function (params: any[]) {
-            const date = params[0].name
-            let result = `<b>${date}</b><br/>`
-            let total = 0
-
-            // 按 token 数量从大到小排序
-            const sortedParams = [...params].sort((a, b) => b.value - a.value)
-
-            sortedParams.forEach((param) => {
-              if (param.value > 0) {
-                result += `<div class="flex items-center justify-between gap-4">
-                  <div>${param.marker}${param.seriesName}</div>
-                  <div class="font-bold">${param.value}</div>
-                </div>`
-                total += param.value
-              }
-            })
-
-            if (params.length > 1) {
-              result += `<div class="mt-2 pt-2 border-t border-gray-200">
-                <div class="flex items-center justify-between gap-4">
-                  <div>总计</div>
-                  <div class="font-bold">${total}</div>
-                </div>
-              </div>`
-            }
-
-            return result
-          } as any,
+          ...getBaseChartOption(isNarrowScreen.value).tooltip,
+          formatter: formatTooltip,
         },
-        legend: {
-          data: types,
-          textStyle: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
-        xAxis: {
-          type: 'category',
-          data: dates,
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
-        yAxis: {
-          type: 'value',
-          name: 'Token 数量',
-          nameTextStyle: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-          axisLabel: {
-            color: isDark.value ? '#fff' : '#000',
-          },
-        },
+        legend: getLegendOption(isNarrowScreen.value, types),
+        ...getAxisOption(dates),
         series: types.map((type) => ({
           name: type,
           type: 'bar',
