@@ -30,11 +30,12 @@
 
   const colorMode = useColorMode()
 
-  const totalUsageChartRef = ref<InstanceType<typeof VChart>>()
-  const modelUsageChartRef = ref<InstanceType<typeof VChart>>()
-  useChartAutoResize(totalUsageChartRef)
-  const { isNarrowScreen } = useChartAutoResize(modelUsageChartRef)
+  const chartRef = ref<InstanceType<typeof VChart>>()
+  const { isNarrowScreen } = useChartAutoResize(chartRef)
   const isDark = computed(() => colorMode.value === 'dark')
+
+  // 是否显示模型使用量
+  const showModelUsage = ref(false)
 
   onNuxtReady(() => {
     watch(
@@ -128,201 +129,203 @@
     }
   }
 
-  // 总使用量图表配置
-  const totalUsageOption = computed<EChartsOption>(() => {
+  // 合并后的图表配置
+  const chartOption = computed<EChartsOption>(() => {
     if (!costData.value) return {}
 
     const dates = Object.keys(costData.value).sort()
-    const types: LLMType[] = ['chat', 'reranker', 'embedding', 'text-to-image']
 
-    return {
-      animation: true,
-      animationDuration: 500,
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-        formatter: function (params: any[]) {
-          const date = params[0].name
-          let result = `<b>${date}</b><br/>`
-          let total = 0
-
-          // 按 token 数量从大到小排序
-          const sortedParams = [...params].sort((a, b) => b.value - a.value)
-
-          sortedParams.forEach((param) => {
-            if (param.value > 0) {
-              result += `<div class="flex items-center justify-between gap-4">
-                <div>${param.marker}${param.seriesName}</div>
-                <div class="font-bold">${param.value}</div>
-              </div>`
-              total += param.value
-            }
+    if (showModelUsage.value) {
+      // 模型使用量视图
+      const modelSet = new Set<string>()
+      Object.values(costData.value).forEach((dayData) => {
+        dayData.forEach((item) => {
+          item.models.forEach((model) => {
+            modelSet.add(model.name)
           })
-
-          if (params.length > 1) {
-            result += `<div class="mt-2 pt-2 border-t border-gray-200">
-              <div class="flex items-center justify-between gap-4">
-                <div>总计</div>
-                <div class="font-bold">${total}</div>
-              </div>
-            </div>`
-          }
-
-          return result
-        } as any,
-      },
-      legend: {
-        data: types,
-        textStyle: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      xAxis: {
-        type: 'category',
-        data: dates,
-        axisLabel: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      yAxis: {
-        type: 'value',
-        name: 'Token 数量',
-        nameTextStyle: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-        axisLabel: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      series: types.map((type) => ({
-        name: type,
-        type: 'bar',
-        stack: 'total',
-        emphasis: {
-          focus: 'series',
-        },
-        data: dates.map((date) => {
-          const dayData = costData.value[date]
-          const typeData = dayData?.find((item) => item.type === type)
-          return typeData?.totalTokens ?? 0
-        }),
-      })),
-    }
-  })
-
-  // 模型使用量图表配置
-  const modelUsageOption = computed<EChartsOption>(() => {
-    if (!costData.value) return {}
-
-    const dates = Object.keys(costData.value).sort()
-
-    // 收集所有日期中出现的模型
-    const modelSet = new Set<string>()
-    Object.values(costData.value).forEach((dayData) => {
-      dayData.forEach((item) => {
-        item.models.forEach((model) => {
-          modelSet.add(model.name)
         })
       })
-    })
-    const models = Array.from(modelSet)
+      const models = Array.from(modelSet)
 
-    return {
-      animation: true,
-      animationDuration: 500,
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-        // 用自定义 formatter 只显示非零值
-        formatter: function (params: any[]) {
-          const date = params[0].name
-          let result = `<b>${date}</b><br/>`
-          let total = 0
+      return {
+        animation: true,
+        animationDuration: 500,
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+          },
+          // 用自定义 formatter 只显示非零值
+          formatter: function (params: any[]) {
+            const date = params[0].name
+            let result = `<b>${date}</b><br/>`
+            let total = 0
 
-          // 按 token 数量从大到小排序
-          const sortedParams = [...params].sort((a, b) => b.value - a.value)
+            // 按 token 数量从大到小排序
+            const sortedParams = [...params].sort((a, b) => b.value - a.value)
 
-          sortedParams.forEach((param) => {
-            if (param.value > 0) {
-              result += `<div class="flex items-center justify-between gap-4">
-                <div>${param.marker}${param.seriesName}</div>
-                <div class="font-bold">${param.value}</div>
+            sortedParams.forEach((param) => {
+              if (param.value > 0) {
+                result += `<div class="flex items-center justify-between gap-4">
+                  <div>${param.marker}${param.seriesName}</div>
+                  <div class="font-bold">${param.value}</div>
+                </div>`
+                total += param.value
+              }
+            })
+
+            if (params.length > 1) {
+              result += `<div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="flex items-center justify-between gap-4">
+                  <div>总计</div>
+                  <div class="font-bold">${total}</div>
+                </div>
               </div>`
-              total += param.value
             }
-          })
 
-          if (params.length > 1) {
-            result += `<div class="mt-2 pt-2 border-t border-gray-200">
-              <div class="flex items-center justify-between gap-4">
-                <div>总计</div>
-                <div class="font-bold">${total}</div>
-              </div>
-            </div>`
-          }
+            return result
+          } as any,
+        },
+        grid: {
+          left: isNarrowScreen.value ? '5%' : '5%',
+          right: isNarrowScreen.value ? '5%' : '32%',
+          top: '80',
+          containLabel: true,
+        },
+        legend: {
+          type: 'scroll',
+          orient: isNarrowScreen.value ? 'horizontal' : 'vertical',
+          left: isNarrowScreen.value ? 'center' : '70%',
+          top: isNarrowScreen.value ? 0 : 'middle',
+          width: isNarrowScreen.value ? '90%' : 'auto',
+          height: isNarrowScreen.value ? 'auto' : '80%',
+          pageButtonPosition: isNarrowScreen.value ? 'end' : 'start',
+          data: models,
+          textStyle: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        xAxis: {
+          type: 'category',
+          data: dates,
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        yAxis: {
+          type: 'value',
+          name: 'Token 数量',
+          nameTextStyle: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        series: models.map((modelName) => ({
+          name: modelName,
+          type: 'bar',
+          stack: 'total',
+          emphasis: {
+            focus: 'series',
+          },
+          data: dates.map((date) => {
+            const dayData = costData.value[date]
+            let total = 0
+            dayData?.forEach((item) => {
+              const model = item.models.find((m) => m.name === modelName)
+              if (model) {
+                total += model.tokens
+              }
+            })
+            return total
+          }),
+        })),
+      }
+    } else {
+      // 总使用量视图
+      const types: LLMType[] = [
+        'chat',
+        'reranker',
+        'embedding',
+        'text-to-image',
+      ]
 
-          return result
-        } as any,
-      },
-      grid: {
-        left: isNarrowScreen.value ? '5%' : '5%',
-        right: isNarrowScreen.value ? '5%' : '32%',
-        top: '80',
-        containLabel: true,
-      },
-      legend: {
-        type: 'scroll',
-        orient: isNarrowScreen.value ? 'horizontal' : 'vertical',
-        left: isNarrowScreen.value ? 'center' : '70%',
-        top: isNarrowScreen.value ? 0 : 'middle',
-        width: isNarrowScreen.value ? '90%' : 'auto',
-        height: isNarrowScreen.value ? 'auto' : '80%',
-        pageButtonPosition: isNarrowScreen.value ? 'end' : 'start',
-        data: models,
-        textStyle: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      xAxis: {
-        type: 'category',
-        data: dates,
-        axisLabel: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      yAxis: {
-        type: 'value',
-        name: 'Token 数量',
-        nameTextStyle: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-        axisLabel: {
-          color: isDark.value ? '#fff' : '#000',
-        },
-      },
-      series: models.map((modelName) => ({
-        name: modelName,
-        type: 'bar',
-        stack: 'total',
-        emphasis: {
-          focus: 'series',
-        },
-        data: dates.map((date) => {
-          const dayData = costData.value[date]
-          let total = 0
-          dayData?.forEach((item) => {
-            const model = item.models.find((m) => m.name === modelName)
-            if (model) {
-              total += model.tokens
+      return {
+        animation: true,
+        animationDuration: 500,
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+          },
+          formatter: function (params: any[]) {
+            const date = params[0].name
+            let result = `<b>${date}</b><br/>`
+            let total = 0
+
+            // 按 token 数量从大到小排序
+            const sortedParams = [...params].sort((a, b) => b.value - a.value)
+
+            sortedParams.forEach((param) => {
+              if (param.value > 0) {
+                result += `<div class="flex items-center justify-between gap-4">
+                  <div>${param.marker}${param.seriesName}</div>
+                  <div class="font-bold">${param.value}</div>
+                </div>`
+                total += param.value
+              }
+            })
+
+            if (params.length > 1) {
+              result += `<div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="flex items-center justify-between gap-4">
+                  <div>总计</div>
+                  <div class="font-bold">${total}</div>
+                </div>
+              </div>`
             }
-          })
-          return total
-        }),
-      })),
+
+            return result
+          } as any,
+        },
+        legend: {
+          data: types,
+          textStyle: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        xAxis: {
+          type: 'category',
+          data: dates,
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        yAxis: {
+          type: 'value',
+          name: 'Token 数量',
+          nameTextStyle: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000',
+          },
+        },
+        series: types.map((type) => ({
+          name: type,
+          type: 'bar',
+          stack: 'total',
+          emphasis: {
+            focus: 'series',
+          },
+          data: dates.map((date) => {
+            const dayData = costData.value[date]
+            const typeData = dayData?.find((item) => item.type === type)
+            return typeData?.totalTokens ?? 0
+          }),
+        })),
+      }
     }
   })
 
@@ -332,51 +335,45 @@
 </script>
 
 <template>
-  <div>
-    <div class="mb-4">
-      <label class="block text-sm font-medium mb-2">选择日期范围：</label>
-      <div class="flex gap-2">
-        <DateRangeSelector v-model="selectedDateRange" />
+  <div class="p-4 border rounded-lg">
+    <div class="flex flex-col gap-4 mb-4">
+      <!-- 标题和控制选项 -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-semibold">每日使用统计</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{
+              showModelUsage
+                ? '按模型名称展示 Token 使用量'
+                : '按模型种类展示 Token 使用量'
+            }}
+          </p>
+        </div>
+        <div class="flex items-center gap-4">
+          <UButton
+            icon="i-heroicons-arrow-path-20-solid"
+            :loading="loading"
+            @click="fetchCostData(false)"
+            size="sm"
+          >
+            刷新
+          </UButton>
+        </div>
+      </div>
+
+      <!-- 日期选择器 -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span>日期范围</span>
+          <DateRangeSelector v-model="selectedDateRange" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span>模型视图</span>
+          <USwitch size="sm" v-model="showModelUsage" />
+        </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4">
-      <div class="p-4 border rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">每日总使用量</h2>
-          <UButton
-            icon="i-heroicons-arrow-path-20-solid"
-            :loading="loading"
-            @click="fetchCostData(false)"
-            size="sm"
-          >
-            刷新
-          </UButton>
-        </div>
-        <v-chart
-          ref="totalUsageChartRef"
-          class="!h-[400px]"
-          :option="totalUsageOption"
-        />
-      </div>
-      <div class="p-4 border rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">模型使用量分布</h2>
-          <UButton
-            icon="i-heroicons-arrow-path-20-solid"
-            :loading="loading"
-            @click="fetchCostData(false)"
-            size="sm"
-          >
-            刷新
-          </UButton>
-        </div>
-        <v-chart
-          ref="modelUsageChartRef"
-          class="!h-[400px]"
-          :option="modelUsageOption"
-        />
-      </div>
-    </div>
+    <v-chart ref="chartRef" class="!h-[400px]" :option="chartOption" :loading />
   </div>
 </template>

@@ -48,7 +48,7 @@
 
 <template>
   <UPopover>
-    <UButton icon="i-heroicons-calendar-days-20-solid">
+    <UButton color="neutral" variant="outline" size="sm" icon="i-heroicons-calendar-days-20-solid">
       <!-- Nuxt UI 可能有 bug，在选择日期过程中两个值都会变成 undefined -->
       <template v-if="selected.start && selected.end">
         {{ df.format(selected.start.toDate(getLocalTimeZone())) }} ~
