@@ -275,27 +275,45 @@
 
 <template>
   <div class="p-4 border rounded-lg">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h2 class="text-xl font-semibold">月度使用统计</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {{
-            showByApiKey ? '按 API Key 展示消费金额' : '按模型展示 Token 使用量'
-          }}
-        </p>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm">年份</span>
-        <USelect
-          v-model="selectedYear"
-          :items="yearOptions"
-          :disabled="loading"
+    <div class="flex flex-col gap-4 mb-4">
+      <!-- 标题和刷新按钮 -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold">月度使用统计</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{
+              showByApiKey ? '按 API Key 展示消费金额' : '按模型展示 Token 使用量'
+            }}
+          </p>
+        </div>
+        <UButton
+          icon="i-heroicons-arrow-path-20-solid"
+          :loading="loading"
+          @click="fetchAllData"
           size="sm"
-        />
-        <span class="text-sm">API key 视图</span>
-        <USwitch v-model="showByApiKey" :disabled="loading"> </USwitch>
+        >
+          刷新
+        </UButton>
+      </div>
+      
+      <!-- 控制选项 -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-sm whitespace-nowrap">年份</span>
+          <USelect
+            v-model="selectedYear"
+            :items="yearOptions"
+            :disabled="loading"
+            size="sm"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm whitespace-nowrap">API key 视图</span>
+          <USwitch v-model="showByApiKey" :disabled="loading" />
+        </div>
       </div>
     </div>
+
     <div v-if="loading" class="h-[400px] flex items-center justify-center">
       <UIcon name="i-heroicons-arrow-path-20-solid" class="animate-spin" />
       加载中...

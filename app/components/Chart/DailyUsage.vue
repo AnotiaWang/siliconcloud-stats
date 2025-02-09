@@ -294,19 +294,22 @@
       <label class="block text-sm font-medium mb-2">选择日期范围：</label>
       <div class="flex gap-2">
         <DateRangeSelector v-model="selectedDateRange" />
-        <UButton
-          icon="i-heroicons-arrow-path-20-solid"
-          :loading="loading"
-          @click="fetchCostData(false)"
-        >
-          刷新
-        </UButton>
       </div>
     </div>
 
     <div class="grid grid-cols-1 gap-4">
       <div class="p-4 border rounded-lg">
-        <h2 class="text-xl font-semibold mb-4">每日总使用量</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">每日总使用量</h2>
+          <UButton
+            icon="i-heroicons-arrow-path-20-solid"
+            :loading="loading"
+            @click="fetchCostData(false)"
+            size="sm"
+          >
+            刷新
+          </UButton>
+        </div>
         <v-chart
           ref="totalUsageChartRef"
           class="!h-[400px]"
@@ -314,7 +317,17 @@
         />
       </div>
       <div class="p-4 border rounded-lg">
-        <h2 class="text-xl font-semibold mb-4">模型使用量分布</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">模型使用量分布</h2>
+          <UButton
+            icon="i-heroicons-arrow-path-20-solid"
+            :loading="loading"
+            @click="fetchCostData(false)"
+            size="sm"
+          >
+            刷新
+          </UButton>
+        </div>
         <v-chart
           ref="modelUsageChartRef"
           class="!h-[400px]"
