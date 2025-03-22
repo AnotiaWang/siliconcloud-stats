@@ -33,11 +33,15 @@
     <div class="flex flex-col sm:flex-row items-center mb-4 gap-2">
       <h1 class="text-2xl font-bold">SiliconCloud 使用量分析</h1>
       <div class="flex sm:items-center sm:ml-auto">
-        <CookieManager
-          ref="cookieManagerRef"
-          class="ml-auto"
-          @update="onCookieUpdate"
-        />
+        <UButton
+          color="primary"
+          variant="subtle"
+          icon="i-lucide-github"
+          to="https://github.com/AnotiaWang/deep-research-web-ui"
+          target="_blank"
+        >
+        </UButton>
+        <CookieManager ref="cookieManagerRef" class="ml-2" @update="onCookieUpdate" />
         <ColorModeButton class="ml-2" />
       </div>
     </div>
