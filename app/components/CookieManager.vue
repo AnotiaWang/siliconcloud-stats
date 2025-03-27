@@ -52,20 +52,14 @@
           <UTextarea v-model="cookie" class="w-full" />
         </UFormField>
 
-        <div
-          class="mt-2 flex flex-col text-sm text-gray-700 dark:text-gray-300"
-        >
+        <div class="mt-2 flex flex-col text-sm text-gray-700 dark:text-gray-300">
           <div>SiliconCloud 使用 Cookie 鉴权。</div>
           <div>
-            您输入的 Cookie
-            保存在您浏览器里，他人无法访问，您可以随时清空。在查询数据时，为了解决跨域问题，您的
-            Cookie 会被临时发送到本项目的后端（基于腾讯云 EdgeOne Pages
-            边缘函数），用后即焚。
+            您输入的 Cookie 保存在您浏览器里，他人无法访问，您可以随时清空。在查询数据时，为了解决跨域问题，您的 Cookie
+            会被临时发送到本项目的后端（基于腾讯云 EdgeOne Pages 边缘函数），用后即焚。
           </div>
           <div>
-            本项目仅仅为了方便个人分析数据，<span class="text-red-500 font-bold"
-              >不会存储任何信息。</span
-            >如果您有顾虑，可以在
+            本项目仅仅为了方便个人分析数据，<span class="text-red-500 font-bold">不会存储任何信息。</span>如果您有顾虑，可以在
             <UButton
               class="align-text-bottom -mb-1"
               variant="subtle"
@@ -92,17 +86,8 @@
         </div>
 
         <div class="flex mt-4 w-full flex-row-reverse gap-x-2">
-          <UButton :disabled="!cookie" @click="saveCookie">
-            保存 Cookie
-          </UButton>
-          <UButton
-            v-if="isCookieSet"
-            color="error"
-            variant="ghost"
-            @click="deleteCookie"
-          >
-            删除 Cookie
-          </UButton>
+          <UButton :disabled="!cookie" @click="saveCookie"> 保存 Cookie </UButton>
+          <UButton v-if="isCookieSet" color="error" variant="ghost" @click="deleteCookie"> 删除 Cookie </UButton>
         </div>
       </template>
     </UModal>

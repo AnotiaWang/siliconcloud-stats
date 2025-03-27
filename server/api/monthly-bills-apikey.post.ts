@@ -19,14 +19,11 @@ export default defineEventHandler(async (event) => {
 
   try {
     // 获取账单数据
-    const resp = await fetch(
-      `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
-      {
-        headers: {
-          cookie,
-        },
+    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+      headers: {
+        cookie,
       },
-    )
+    })
     const bodyText = await resp.text()
     if (bodyText.includes('登录')) {
       throw createError({
@@ -44,15 +41,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // 获取 API Key 详情数据
-    const apikeyResp = await fetch(
-      'https://cloud.siliconflow.cn/api/v1/apikey/all',
-      {
-        method: 'POST',
-        headers: {
-          cookie,
-        },
+    const apikeyResp = await fetch('https://cloud.siliconflow.cn/api/v1/apikey/all', {
+      method: 'POST',
+      headers: {
+        cookie,
       },
-    )
+    })
     const apikeyBodyText = await apikeyResp.text()
     if (apikeyBodyText.includes('登录')) {
       throw createError({
@@ -70,10 +64,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 创建 API Key 状态映射
-    const apikeyStatusMap = new Map<
-      string,
-      { isDisabled: boolean; name: string }
-    >(
+    const apikeyStatusMap = new Map<string, { isDisabled: boolean; name: string }>(
       apikeyData.data.records.map((key: any) => [
         key.secretKey,
         {
@@ -87,10 +78,7 @@ export default defineEventHandler(async (event) => {
     const results = body.data.results.map(
       (bill: any) =>
         ({
-          name:
-            bill.apiKey === 'playground'
-              ? '在线体验'
-              : apikeyStatusMap.get(bill.apiKey)?.name || 'Unknown',
+          name: bill.apiKey === 'playground' ? '在线体验' : apikeyStatusMap.get(bill.apiKey)?.name || 'Unknown',
           isDisabled: apikeyStatusMap.get(bill.apiKey)?.isDisabled ?? false,
           llmTokens: bill.llmTokens,
           imageTokens: bill.imageTokens,

@@ -35,17 +35,14 @@ export async function onRequestPost(context) {
   })
 
   try {
-    const resp = await fetch(
-      `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
-      {
-        headers: {
-          cookie,
-        },
-        eo: {
-          cacheTtl: 0,
-        },
+    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+      headers: {
+        cookie,
       },
-    )
+      eo: {
+        cacheTtl: 0,
+      },
+    })
     const bodyText = await resp.text()
     if (bodyText.includes('登录')) {
       return new Response(

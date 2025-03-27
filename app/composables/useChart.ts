@@ -1,8 +1,4 @@
-import {
-  TooltipComponent,
-  GridComponent,
-  LegendComponent,
-} from 'echarts/components'
+import { TooltipComponent, GridComponent, LegendComponent } from 'echarts/components'
 import { BarChart } from 'echarts/charts'
 import { use } from 'echarts/core'
 import type { EChartsOption } from 'echarts'
@@ -15,9 +11,7 @@ export function useChart() {
   const isDark = computed(() => colorMode.value === 'dark')
 
   // 获取基础的图表配置
-  const getBaseChartOption = (
-    isNarrowScreen: boolean,
-  ): Partial<EChartsOption> => {
+  const getBaseChartOption = (isNarrowScreen: boolean): Partial<EChartsOption> => {
     return {
       animation: true,
       animationDuration: 500,
@@ -37,10 +31,7 @@ export function useChart() {
   }
 
   // 获取图例配置
-  const getLegendOption = (
-    isNarrowScreen: boolean,
-    data: string[],
-  ): EChartsOption['legend'] => {
+  const getLegendOption = (isNarrowScreen: boolean, data: string[]): EChartsOption['legend'] => {
     return {
       type: 'scroll',
       orient: isNarrowScreen ? 'horizontal' : 'vertical',
@@ -57,10 +48,7 @@ export function useChart() {
   }
 
   // 获取坐标轴配置
-  const getAxisOption = (
-    data: string[],
-    name = 'Token 数量',
-  ): Pick<EChartsOption, 'xAxis' | 'yAxis'> => {
+  const getAxisOption = (data: string[], name = 'Token 数量'): Pick<EChartsOption, 'xAxis' | 'yAxis'> => {
     return {
       xAxis: {
         type: 'category',

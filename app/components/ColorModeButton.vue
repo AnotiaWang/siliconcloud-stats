@@ -18,13 +18,6 @@
 
 <template>
   <div>
-    <UButton
-      :icon="
-        preference === 'dark'
-          ? 'i-heroicons-sun-20-solid'
-          : 'i-heroicons-moon-20-solid'
-      "
-      @click="toggleColorMode"
-    />
+    <UButton :icon="preference === 'dark' ? 'i-heroicons-sun-20-solid' : 'i-heroicons-moon-20-solid'" @click="toggleColorMode" />
   </div>
 </template>

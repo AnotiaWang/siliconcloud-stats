@@ -1,10 +1,5 @@
 <script setup lang="ts">
-  import {
-    DateFormatter,
-    getLocalTimeZone,
-    today,
-    type CalendarDate,
-  } from '@internationalized/date'
+  import { DateFormatter, getLocalTimeZone, today, type CalendarDate } from '@internationalized/date'
   import { useMediaQuery } from '@vueuse/core'
 
   export interface DateRange {
@@ -31,10 +26,7 @@
   function isRangeSelected(days: number) {
     const now = today(getLocalTimeZone())
     const start = now.subtract({ days })
-    return (
-      selected.value.start?.compare(start) === 0 &&
-      selected.value.end?.compare(now) === 0
-    )
+    return selected.value.start?.compare(start) === 0 && selected.value.end?.compare(now) === 0
   }
 
   function selectRange(days: number) {
@@ -57,9 +49,7 @@
     </UButton>
 
     <template #content>
-      <div
-        class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800"
-      >
+      <div class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800">
         <div class="hidden sm:flex flex-col py-4">
           <UButton
             v-for="(range, index) in ranges"
@@ -68,22 +58,13 @@
             color="neutral"
             variant="ghost"
             class="rounded-none px-6"
-            :class="[
-              isRangeSelected(range.days)
-                ? 'bg-gray-100 dark:bg-gray-800'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-            ]"
+            :class="[isRangeSelected(range.days) ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50']"
             truncate
             @click="selectRange(range.days)"
           />
         </div>
 
-        <UCalendar
-          v-model="selected"
-          class="p-3"
-          :number-of-months="isLargeScreen ? 2 : 1"
-          range
-        ></UCalendar>
+        <UCalendar v-model="selected" class="p-3" :number-of-months="isLargeScreen ? 2 : 1" range></UCalendar>
       </div>
     </template>
   </UPopover>

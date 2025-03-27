@@ -18,14 +18,11 @@ export default defineEventHandler(async (event) => {
   })
 
   try {
-    const resp = await fetch(
-      `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
-      {
-        headers: {
-          cookie,
-        },
+    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+      headers: {
+        cookie,
       },
-    )
+    })
     const bodyText = await resp.text()
     if (bodyText.includes('登录')) {
       throw createError({

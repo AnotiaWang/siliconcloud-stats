@@ -208,7 +208,7 @@
           </p>
         </div>
         <div class="flex items-center gap-4">
-          <UButton icon="i-heroicons-arrow-path-20-solid" :loading="loading" @click="fetchCostData(false)" size="sm"> 刷新 </UButton>
+          <UButton icon="i-heroicons-arrow-path-20-solid" :loading="loading" size="sm" @click="fetchCostData(false)"> 刷新 </UButton>
         </div>
       </div>
 
@@ -220,7 +220,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span>模型视图</span>
-          <USwitch size="sm" v-model="showModelUsage" />
+          <USwitch v-model="showModelUsage" size="sm" />
         </div>
       </div>
     </div>

@@ -1,20 +1,12 @@
 <script setup lang="ts">
-  import type {
-    MonthlyModelBillResult,
-    MonthlyApikeyBillResult,
-  } from '~~/types/logic'
+  import type { MonthlyModelBillResult, MonthlyApikeyBillResult } from '~~/types/logic'
   import type { EChartsOption } from 'echarts'
   import type { VChart } from '#components'
 
   const chartRef = ref<InstanceType<typeof VChart>>()
   const { isNarrowScreen } = useChartAutoResize(chartRef)
-  const { getBaseChartOption, getLegendOption, getAxisOption, formatTooltip } =
-    useChart()
+  const { getBaseChartOption, getLegendOption, getAxisOption, formatTooltip } = useChart()
 
-  // 是否按 API Key 分组显示
-  const showByApiKey = ref(false)
-  // 是否按模型类型分组显示
-  const showByModelType = ref(false)
   // 选择的年份
   const currentYear = new Date().getFullYear()
   const selectedYear = ref(currentYear.toString())
@@ -42,16 +34,13 @@
   const selectedViewType = ref('model')
 
   // 存储每个月的数据
-  const monthlyData = ref<
-    Record<string, MonthlyModelBillResult[] | MonthlyApikeyBillResult[]>
-  >({})
+  const monthlyData = ref<Record<string, MonthlyModelBillResult[] | MonthlyApikeyBillResult[]>>({})
 
   // 计算当前年份的所有月份（到当前月份为止）
   const months = computed(() => {
     const now = new Date()
     const currentYear = now.getFullYear()
-    const endMonth =
-      selectedYear.value === currentYear.toString() ? now.getMonth() + 1 : 12
+    const endMonth = selectedYear.value === currentYear.toString() ? now.getMonth() + 1 : 12
     return Array.from({ length: endMonth }, (_, i) => {
       const month = String(i + 1).padStart(2, '0')
       return `${selectedYear.value}-${month}`
@@ -63,7 +52,7 @@
   const toast = useToast()
   const cookieStore = useCookieStore()
 
-  const fetchMonthData = async (month: string) => {
+  const fetchMonthData = async (month: string): Promise<MonthlyModelBillResult[] | MonthlyApikeyBillResult[] | null> => {
     if (!cookieStore.cookie) return null
 
     let endpoint = '/api/monthly-bills-model'
@@ -79,7 +68,7 @@
         modelType: selectedModelType.value,
       },
     })
-    return data
+    return data as MonthlyModelBillResult[] | MonthlyApikeyBillResult[]
   }
 
   const fetchAllData = async () => {
@@ -96,7 +85,9 @@
       for (const month of months.value) {
         try {
           const data = await fetchMonthData(month)
-          monthlyData.value[month] = data
+          if (data) {
+            monthlyData.value[month] = data
+          }
         } catch (error) {
           console.error(`请求 ${month} 时出错`, error)
         }
@@ -180,9 +171,7 @@
           stack: 'total',
           emphasis: { focus: 'series' },
           data: months.value.map((month) => {
-            const monthData = monthlyData.value[
-              month
-            ] as MonthlyApikeyBillResult[]
+            const monthData = monthlyData.value[month] as MonthlyApikeyBillResult[]
             const item = monthData?.find((d) => d.name === name)
             return item?.price || 0
           }),
@@ -213,15 +202,9 @@
           stack: 'total',
           emphasis: { focus: 'series' },
           data: months.value.map((month) => {
-            const monthData = monthlyData.value[
-              month
-            ] as MonthlyModelBillResult[]
+            const monthData = monthlyData.value[month] as MonthlyModelBillResult[]
             // 计算该类型的所有模型的 token 总和
-            return monthData
-              ? monthData
-                  .filter((m) => m.subType === type)
-                  .reduce((sum, m) => sum + parseInt(m.tokens), 0)
-              : 0
+            return monthData ? monthData.filter((m) => m.subType === type).reduce((sum, m) => sum + parseInt(m.tokens), 0) : 0
           }),
         })),
       }
@@ -250,9 +233,7 @@
           stack: 'total',
           emphasis: { focus: 'series' },
           data: months.value.map((month) => {
-            const monthData = monthlyData.value[
-              month
-            ] as MonthlyModelBillResult[]
+            const monthData = monthlyData.value[month] as MonthlyModelBillResult[]
             const item = monthData?.find((m) => m.modelName === modelName)
             return item ? parseInt(item.tokens) : 0
           }),
@@ -276,49 +257,27 @@
               selectedViewType === 'apiKey'
                 ? '按 API Key 展示消费金额'
                 : selectedViewType === 'modelType'
-                ? '按模型类型展示 Token 使用量'
-                : '按模型名称展示 Token 使用量'
+                  ? '按模型类型展示 Token 使用量'
+                  : '按模型名称展示 Token 使用量'
             }}
           </p>
         </div>
-        <UButton
-          icon="i-heroicons-arrow-path-20-solid"
-          :loading="loading"
-          @click="fetchAllData"
-          size="sm"
-        >
-          刷新
-        </UButton>
+        <UButton icon="i-heroicons-arrow-path-20-solid" :loading="loading" size="sm" @click="fetchAllData"> 刷新 </UButton>
       </div>
 
       <!-- 控制选项 -->
       <div class="flex flex-wrap items-center gap-3">
         <div class="flex items-center gap-2 text-xs">
           <span>年份</span>
-          <USelect
-            v-model="selectedYear"
-            :items="yearOptions"
-            :disabled="loading"
-            size="sm"
-          />
+          <USelect v-model="selectedYear" :items="yearOptions" :disabled="loading" size="sm" />
         </div>
         <div class="flex items-center gap-2 text-xs">
           <span>视图类型</span>
-          <USelect
-            v-model="selectedViewType"
-            :items="viewTypeOptions"
-            :disabled="loading"
-            size="sm"
-          />
+          <USelect v-model="selectedViewType" :items="viewTypeOptions" :disabled="loading" size="sm" />
         </div>
         <div v-if="selectedViewType === 'model'" class="flex items-center gap-2 text-xs">
           <span>模型类型</span>
-          <USelect
-            v-model="selectedModelType"
-            :items="modelTypeOptions"
-            :disabled="loading"
-            size="sm"
-          />
+          <USelect v-model="selectedModelType" :items="modelTypeOptions" :disabled="loading" size="sm" />
         </div>
       </div>
     </div>

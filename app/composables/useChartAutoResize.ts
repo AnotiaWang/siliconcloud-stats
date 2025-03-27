@@ -1,8 +1,6 @@
 import type { VChart } from '#components'
 
-export const useChartAutoResize = (
-  chartRef: Ref<InstanceType<typeof VChart> | undefined>,
-) => {
+export const useChartAutoResize = (chartRef: Ref<InstanceType<typeof VChart> | undefined>) => {
   const isNarrowScreen = ref(false)
 
   const updateLayout = () => {

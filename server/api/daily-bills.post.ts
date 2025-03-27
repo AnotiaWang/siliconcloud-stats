@@ -19,14 +19,11 @@ export default defineEventHandler(async (event) => {
   })
 
   try {
-    const resp = await fetch(
-      `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
-      {
-        headers: {
-          cookie,
-        },
+    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+      headers: {
+        cookie,
       },
-    )
+    })
     const bodyText = await resp.text()
     if (bodyText.includes('登录')) {
       throw createError({
@@ -46,10 +43,7 @@ export default defineEventHandler(async (event) => {
     const results: DailyBillResultItem[] = []
 
     // 按照 type 分组处理数据
-    const typeGroups = new Map<
-      LLMType,
-      Map<string, { tokens: number; unitPrice: string; price: number }>
-    >()
+    const typeGroups = new Map<LLMType, Map<string, { tokens: number; unitPrice: string; price: number }>>()
 
     // 初始化分组
     bills.forEach((bill: any) => {

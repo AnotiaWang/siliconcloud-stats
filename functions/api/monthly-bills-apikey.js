@@ -37,17 +37,14 @@ export async function onRequestPost(context) {
 
   try {
     // 获取账单数据
-    const resp = await fetch(
-      `https://cloud.siliconflow.cn/api/redirect/bill?${query}`,
-      {
-        headers: {
-          cookie,
-        },
-        eo: {
-          cacheTtl: 0,
-        },
+    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+      headers: {
+        cookie,
       },
-    )
+      eo: {
+        cacheTtl: 0,
+      },
+    })
     const bodyText = await resp.text()
     if (bodyText.includes('登录')) {
       return new Response(
@@ -79,18 +76,15 @@ export async function onRequestPost(context) {
     }
 
     // 获取 API Key 详情数据
-    const apikeyResp = await fetch(
-      'https://cloud.siliconflow.cn/api/v1/apikey/all',
-      {
-        method: 'POST',
-        headers: {
-          cookie,
-        },
-        eo: {
-          cacheTtl: 0,
-        },
+    const apikeyResp = await fetch('https://cloud.siliconflow.cn/api/v1/apikey/all', {
+      method: 'POST',
+      headers: {
+        cookie,
       },
-    )
+      eo: {
+        cacheTtl: 0,
+      },
+    })
     const apikeyBodyText = await apikeyResp.text()
     if (apikeyBodyText.includes('登录')) {
       return new Response(
@@ -135,10 +129,7 @@ export async function onRequestPost(context) {
     // 组合数据
     /** @type {MonthlyApikeyBillResult[]} */
     const results = billResp.data.results.map((bill) => ({
-      name:
-        bill.apiKey === 'playground'
-          ? '在线体验'
-          : apikeyStatusMap.get(bill.apiKey)?.name || 'Unknown',
+      name: bill.apiKey === 'playground' ? '在线体验' : apikeyStatusMap.get(bill.apiKey)?.name || 'Unknown',
       isDisabled: apikeyStatusMap.get(bill.apiKey)?.isDisabled ?? false,
       llmTokens: bill.llmTokens,
       imageTokens: bill.imageTokens,

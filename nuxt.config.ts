@@ -4,17 +4,9 @@ import AutoImport from 'unplugin-auto-import/vite'
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: [
-    '@pinia/nuxt',
-    '@nuxtjs/robots',
-    '@nuxtjs/sitemap',
-    '@nuxt/eslint',
-    '@nuxt/ui',
-    'nuxt-echarts',
-  ],
+  modules: ['@pinia/nuxt', '@nuxtjs/robots', '@nuxtjs/sitemap', '@nuxt/eslint', '@nuxt/ui', 'nuxt-echarts'],
 
   plugins: [],
-
 
   css: ['~/assets/css/main.css'],
 
