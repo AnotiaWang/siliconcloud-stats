@@ -3,7 +3,7 @@ import { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { cookie, month } = body
+  const { cookie, month, modelType } = body
 
   if (!cookie || !month) {
     throw createError({
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const results = body.data.results.map(
+    let results = body.data.results.map(
       (model: any) =>
         ({
           modelName: model.modelName,
@@ -54,6 +54,11 @@ export default defineEventHandler(async (event) => {
           freePrice: parseFloat(model.freeAmount),
         }) as MonthlyModelBillResult,
     )
+
+    // 如果指定了模型类型且不是 'all'，则进行过滤
+    if (modelType && modelType !== 'all') {
+      results = results.filter((model: MonthlyModelBillResult) => model.subType === modelType)
+    }
 
     return results
   } catch (error) {

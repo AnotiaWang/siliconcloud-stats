@@ -16,7 +16,7 @@
 export async function onRequestPost(context) {
   const { request } = context
   const body = await request.json()
-  const { cookie, month } = body
+  const { cookie, month, modelType } = body
 
   if (!cookie || !month) {
     return new Response(
@@ -80,7 +80,7 @@ export async function onRequestPost(context) {
     }
 
     /** @type {MonthlyModelBillResult[]} */
-    const results = body.data.results.map((model) => ({
+    let results = body.data.results.map((model) => ({
       modelName: model.modelName,
       subType: model.subType,
       unitAmount: model.unitAmount,
@@ -89,6 +89,11 @@ export async function onRequestPost(context) {
       chargePrice: parseFloat(model.chargeAmount),
       freePrice: parseFloat(model.freeAmount),
     }))
+
+    // 如果指定了模型类型且不是 'all'，则进行过滤
+    if (modelType && modelType !== 'all') {
+      results = results.filter((model) => model.subType === modelType)
+    }
 
     return new Response(JSON.stringify(results), {
       headers: {

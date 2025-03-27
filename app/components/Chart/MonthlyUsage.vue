@@ -13,6 +13,8 @@
 
   // 是否按 API Key 分组显示
   const showByApiKey = ref(false)
+  // 是否按模型类型分组显示
+  const showByModelType = ref(false)
   // 选择的年份
   const currentYear = new Date().getFullYear()
   const selectedYear = ref(currentYear.toString())
@@ -20,6 +22,24 @@
   const yearOptions = Array.from({ length: currentYear - 2023 }, (_, i) => {
     return String(2024 + i)
   })
+
+  // 模型类型选项
+  const modelTypeOptions = [
+    { label: '全部', value: 'all' },
+    { label: '对话模型', value: 'chat' },
+    { label: '向量模型', value: 'embedding' },
+    { label: '重排模型', value: 'reranker' },
+    { label: '图像生成', value: 'text-to-image' },
+  ]
+  const selectedModelType = ref('all')
+
+  // 视图类型选项
+  const viewTypeOptions = [
+    { label: '按模型名称', value: 'model' },
+    { label: '按模型类型', value: 'modelType' },
+    { label: '按 API Key', value: 'apiKey' },
+  ]
+  const selectedViewType = ref('model')
 
   // 存储每个月的数据
   const monthlyData = ref<
@@ -46,14 +66,17 @@
   const fetchMonthData = async (month: string) => {
     if (!cookieStore.cookie) return null
 
-    const endpoint = showByApiKey.value
-      ? '/api/monthly-bills-apikey'
-      : '/api/monthly-bills-model'
+    let endpoint = '/api/monthly-bills-model'
+    if (selectedViewType.value === 'apiKey') {
+      endpoint = '/api/monthly-bills-apikey'
+    }
+
     const data = await $fetch(endpoint, {
       method: 'POST',
       body: {
         cookie: cookieStore.cookie,
         month,
+        modelType: selectedModelType.value,
       },
     })
     return data
@@ -90,8 +113,8 @@
     }
   }
 
-  // 监听年份和开关变化，重新获取数据
-  watch([selectedYear, showByApiKey], () => {
+  // 监听年份和视图类型变化，重新获取数据
+  watch([selectedYear, selectedViewType, selectedModelType], () => {
     fetchAllData()
   })
 
@@ -103,7 +126,8 @@
   // 图表配置
   const chartOption = computed<EChartsOption>(() => {
     if (!monthlyData.value) return {}
-    if (showByApiKey.value) {
+
+    if (selectedViewType.value === 'apiKey') {
       // API Key 视图
       // 收集所有月份中出现的 API Keys
       const apiKeySet = new Set<string>()
@@ -164,8 +188,45 @@
           }),
         })),
       }
+    } else if (selectedViewType.value === 'modelType') {
+      // 模型类型视图
+      // 收集所有月份中出现的模型类型
+      const modelTypeSet = new Set<string>()
+      Object.values(monthlyData.value).forEach((data) => {
+        ;(data as MonthlyModelBillResult[]).forEach((item) => {
+          modelTypeSet.add(item.subType)
+        })
+      })
+      const modelTypes = Array.from(modelTypeSet)
+
+      return {
+        ...getBaseChartOption(isNarrowScreen.value),
+        tooltip: {
+          ...getBaseChartOption(isNarrowScreen.value).tooltip,
+          formatter: formatTooltip,
+        },
+        legend: getLegendOption(isNarrowScreen.value, modelTypes),
+        ...getAxisOption(months.value),
+        series: modelTypes.map((type) => ({
+          name: type,
+          type: 'bar',
+          stack: 'total',
+          emphasis: { focus: 'series' },
+          data: months.value.map((month) => {
+            const monthData = monthlyData.value[
+              month
+            ] as MonthlyModelBillResult[]
+            // 计算该类型的所有模型的 token 总和
+            return monthData
+              ? monthData
+                  .filter((m) => m.subType === type)
+                  .reduce((sum, m) => sum + parseInt(m.tokens), 0)
+              : 0
+          }),
+        })),
+      }
     } else {
-      // 模型视图
+      // 模型名称视图
       // 收集所有月份中出现的模型
       const modelSet = new Set<string>()
       Object.values(monthlyData.value).forEach((data) => {
@@ -212,9 +273,11 @@
           <h2 class="text-xl font-semibold">月度使用统计</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {{
-              showByApiKey
+              selectedViewType === 'apiKey'
                 ? '按 API Key 展示消费金额'
-                : '按模型展示 Token 使用量'
+                : selectedViewType === 'modelType'
+                ? '按模型类型展示 Token 使用量'
+                : '按模型名称展示 Token 使用量'
             }}
           </p>
         </div>
@@ -240,8 +303,22 @@
           />
         </div>
         <div class="flex items-center gap-2 text-xs">
-          <span>API key 视图</span>
-          <USwitch v-model="showByApiKey" :disabled="loading" />
+          <span>视图类型</span>
+          <USelect
+            v-model="selectedViewType"
+            :items="viewTypeOptions"
+            :disabled="loading"
+            size="sm"
+          />
+        </div>
+        <div v-if="selectedViewType === 'model'" class="flex items-center gap-2 text-xs">
+          <span>模型类型</span>
+          <USelect
+            v-model="selectedModelType"
+            :items="modelTypeOptions"
+            :disabled="loading"
+            size="sm"
+          />
         </div>
       </div>
     </div>
