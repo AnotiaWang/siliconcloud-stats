@@ -37,7 +37,7 @@
           color="primary"
           variant="subtle"
           icon="i-lucide-github"
-          to="https://github.com/AnotiaWang/deep-research-web-ui"
+          to="https://github.com/AnotiaWang/siliconcloud-stats"
           target="_blank"
         >
         </UButton>
