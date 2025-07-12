@@ -12,9 +12,9 @@
 export async function onRequestPost(context) {
   const { request } = context
   const body = await request.json()
-  const { cookie, date } = body
+  const { cookie, date, subjectId } = body
 
-  if (!cookie || !date) {
+  if (!cookie || !date || !subjectId) {
     return new Response(
       JSON.stringify({
         message: 'Missing parameters',
@@ -30,14 +30,14 @@ export async function onRequestPost(context) {
 
   const query = new URLSearchParams({
     date,
-    action: 'invoices/day_cost',
     apiKeyId: '-1',
   })
 
   try {
-    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+    const resp = await fetch(`https://cloud.siliconflow.cn/biz-server/api/v1/invoices/day_cost?${query}`, {
       headers: {
         cookie,
+        'X-Subject-id': subjectId,
       },
       eo: {
         cacheTtl: 0,
@@ -57,15 +57,15 @@ export async function onRequestPost(context) {
         },
       )
     }
-    const body = JSON.parse(bodyText)
+    const respBody = JSON.parse(bodyText)
 
-    if (!body.status || !body.ok || !body.data?.results) {
+    if (!respBody.status || !respBody.data?.results) {
       return new Response(
         JSON.stringify({
-          message: `硅基流动 API 返回报错：${body.message}`,
+          message: `硅基流动 API 返回报错：${respBody.message}`,
         }),
         {
-          status: body.code || 500,
+          status: respBody.code || 500,
           headers: {
             'content-type': 'application/json; charset=UTF-8',
           },
@@ -73,7 +73,7 @@ export async function onRequestPost(context) {
       )
     }
 
-    const bills = body.data.results
+    const bills = respBody.data.results
     /** @type {DailyBillResult[]} */
     const results = []
 
