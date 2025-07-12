@@ -5,27 +5,31 @@
 
   const cookieStore = useCookieStore()
   const toast = useToast()
-  const isCookieSet = computed(() => !!cookieStore.cookie)
+  const isCookieSet = computed(() => !!cookieStore.cookie && !!cookieStore.subjectId)
 
   const showCookieModal = ref(false)
   const showCookieTutorialModal = ref(false)
   const cookie = ref('')
+  const subjectId = ref('')
 
   watch(showCookieModal, (value) => {
     if (value) {
       cookie.value = cookieStore.cookie
+      subjectId.value = cookieStore.subjectId
     }
   })
 
   const saveCookie = () => {
     cookieStore.cookie = cookie.value
-    toast.add({ title: 'Cookie 已保存', color: 'success', duration: 3000 })
+    cookieStore.subjectId = subjectId.value
+    toast.add({ title: '已保存', color: 'success', duration: 3000 })
     showCookieModal.value = false
     emit('update')
   }
   const deleteCookie = () => {
     cookieStore.cookie = ''
-    toast.add({ title: 'Cookie 已删除', color: 'success', duration: 3000 })
+    cookieStore.subjectId = ''
+    toast.add({ title: '已删除', color: 'success', duration: 3000 })
     showCookieModal.value = false
   }
 
@@ -48,11 +52,17 @@
       </UButton>
 
       <template #body>
-        <UFormField label="Cookie 内容">
-          <UTextarea v-model="cookie" class="w-full" />
-        </UFormField>
+        <div class="flex flex-col gap-y-4">
+          <UFormField label="用户 ID">
+            <UInput v-model="subjectId" class="w-full" />
+            <template #help> 可以在控制台右上角点击头像查看 </template>
+          </UFormField>
+          <UFormField label="Cookie 内容">
+            <UTextarea v-model="cookie" class="w-full" />
+          </UFormField>
+        </div>
 
-        <div class="mt-2 flex flex-col text-sm text-gray-700 dark:text-gray-300">
+        <div class="mt-4 flex flex-col text-sm text-gray-700 dark:text-gray-300">
           <div>SiliconCloud 使用 Cookie 鉴权。</div>
           <div>
             您输入的 Cookie 保存在您浏览器里，他人无法访问，您可以随时清空。在查询数据时，为了解决跨域问题，您的 Cookie
@@ -86,8 +96,8 @@
         </div>
 
         <div class="flex mt-4 w-full flex-row-reverse gap-x-2">
-          <UButton :disabled="!cookie" @click="saveCookie"> 保存 Cookie </UButton>
-          <UButton v-if="isCookieSet" color="error" variant="ghost" @click="deleteCookie"> 删除 Cookie </UButton>
+          <UButton :disabled="!cookie || !subjectId" @click="saveCookie"> 保存 </UButton>
+          <UButton v-if="isCookieSet" color="error" variant="ghost" @click="deleteCookie"> 删除 </UButton>
         </div>
       </template>
     </UModal>

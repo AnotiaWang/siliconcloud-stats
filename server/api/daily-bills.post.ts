@@ -3,9 +3,9 @@ import { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { cookie, date } = body
+  const { cookie, date, subjectId } = body
 
-  if (!cookie || !date) {
+  if (!cookie || !date || !subjectId) {
     throw createError({
       statusCode: 400,
       message: 'Missing parameters',
@@ -14,14 +14,14 @@ export default defineEventHandler(async (event) => {
 
   const query = new URLSearchParams({
     date,
-    action: 'invoices/day_cost',
     apiKeyId: '-1',
   })
 
   try {
-    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+    const resp = await fetch(`https://cloud.siliconflow.cn/biz-server/api/v1/invoices/day_cost?${query}`, {
       headers: {
         cookie,
+        'X-Subject-id': subjectId,
       },
     })
     const bodyText = await resp.text()
@@ -31,15 +31,15 @@ export default defineEventHandler(async (event) => {
         message: 'Cookie 失效',
       })
     }
-    const body = JSON.parse(bodyText)
+    const respBody = JSON.parse(bodyText)
 
-    if (!body.status || !body.ok || !body.data?.results) {
+    if (!respBody.status || !respBody.data?.results) {
       throw createError({
-        statusCode: body.code,
-        message: `硅基流动 API 返回报错：${body.message}`,
+        statusCode: respBody.code,
+        message: `硅基流动 API 返回报错：${respBody.message}`,
       })
     }
-    const bills = body.data.results
+    const bills = respBody.data.results
     const results: DailyBillResultItem[] = []
 
     // 按照 type 分组处理数据

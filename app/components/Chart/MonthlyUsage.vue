@@ -53,7 +53,7 @@
   const cookieStore = useCookieStore()
 
   const fetchMonthData = async (month: string): Promise<MonthlyModelBillResult[] | MonthlyApikeyBillResult[] | null> => {
-    if (!cookieStore.cookie) return null
+    if (!cookieStore.cookie || !cookieStore.subjectId) return null
 
     let endpoint = '/api/monthly-bills-model'
     if (selectedViewType.value === 'apiKey') {
@@ -66,13 +66,14 @@
         cookie: cookieStore.cookie,
         month,
         modelType: selectedModelType.value,
+        subjectId: cookieStore.subjectId,
       },
     })
     return data as MonthlyModelBillResult[] | MonthlyApikeyBillResult[]
   }
 
   const fetchAllData = async () => {
-    if (!cookieStore.cookie) {
+    if (!cookieStore.cookie || !cookieStore.subjectId) {
       return // 不用 toast 了，index.vue 里面提示过了
     }
     if (loading.value) return

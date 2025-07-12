@@ -3,9 +3,9 @@ import { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { cookie, month, modelType } = body
+  const { cookie, month, modelType, subjectId } = body
 
-  if (!cookie || !month) {
+  if (!cookie || !month || !subjectId) {
     throw createError({
       statusCode: 400,
       message: 'Missing parameters',
@@ -13,14 +13,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const query = new URLSearchParams({
-    action: 'invoices/month_detail_model',
     month,
   })
 
   try {
-    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+    const resp = await fetch(`https://cloud.siliconflow.cn/biz-server/api/v1/invoices/month_detail_model?${query}`, {
       headers: {
         cookie,
+        'X-Subject-id': subjectId,
       },
     })
     const bodyText = await resp.text()
@@ -30,16 +30,16 @@ export default defineEventHandler(async (event) => {
         message: 'Cookie 失效',
       })
     }
-    const body = JSON.parse(bodyText)
+    const respBody = JSON.parse(bodyText)
 
-    if (!body.status || !body.ok || !body.data?.results) {
+    if (!respBody.status || !respBody.data?.results) {
       throw createError({
-        statusCode: body.code,
-        message: `硅基流动 API 返回报错：${body.message}`,
+        statusCode: respBody.code,
+        message: `硅基流动 API 返回报错：${respBody.message}`,
       })
     }
 
-    let results = body.data.results.map(
+    let results = respBody.data.results.map(
       (model: any) =>
         ({
           modelName: model.modelName,

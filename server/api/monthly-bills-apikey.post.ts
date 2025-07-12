@@ -3,9 +3,9 @@ import { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { cookie, month } = body
+  const { cookie, month, subjectId } = body
 
-  if (!cookie || !month) {
+  if (!cookie || !month || !subjectId) {
     throw createError({
       statusCode: 400,
       message: 'Missing parameters',
@@ -13,15 +13,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const query = new URLSearchParams({
-    action: 'invoices/month_detail_apikey',
     month,
   })
 
   try {
     // 获取账单数据
-    const resp = await fetch(`https://cloud.siliconflow.cn/api/redirect/bill?${query}`, {
+    const resp = await fetch(`https://cloud.siliconflow.cn/biz-server/api/v1/invoices/month_detail_apikey?${query}`, {
       headers: {
         cookie,
+        'X-Subject-id': subjectId,
       },
     })
     const bodyText = await resp.text()
@@ -31,55 +31,21 @@ export default defineEventHandler(async (event) => {
         message: 'Cookie 失效',
       })
     }
-    const body = JSON.parse(bodyText)
+    const respBody = JSON.parse(bodyText)
 
-    if (!body.status || !body.ok || !body.data?.results) {
+    if (!respBody.status || !respBody.data?.results) {
       throw createError({
-        statusCode: body.code,
-        message: `硅基流动 API 返回报错：${body.message}`,
+        statusCode: respBody.code,
+        message: `硅基流动 API 返回报错：${respBody.message}`,
       })
     }
-
-    // 获取 API Key 详情数据
-    const apikeyResp = await fetch('https://cloud.siliconflow.cn/api/v1/apikey/all', {
-      method: 'POST',
-      headers: {
-        cookie,
-      },
-    })
-    const apikeyBodyText = await apikeyResp.text()
-    if (apikeyBodyText.includes('登录')) {
-      throw createError({
-        statusCode: 401,
-        message: 'Cookie 失效',
-      })
-    }
-    const apikeyData = JSON.parse(apikeyBodyText)
-
-    if (!apikeyData.status || !apikeyData.data?.records) {
-      throw createError({
-        statusCode: apikeyData.code,
-        message: `硅基流动 API 返回报错：${apikeyData.message}`,
-      })
-    }
-
-    // 创建 API Key 状态映射
-    const apikeyStatusMap = new Map<string, { isDisabled: boolean; name: string }>(
-      apikeyData.data.records.map((key: any) => [
-        key.secretKey,
-        {
-          isDisabled: key.status === 'disabled',
-          name: key.description || `未命名(sk-***${key.secretKey.slice(-4)})`,
-        },
-      ]),
-    )
 
     // 组合数据
-    const results = body.data.results.map(
+    const results = respBody.data.results.map(
       (bill: any) =>
         ({
-          name: bill.apiKey === 'playground' ? '在线体验' : apikeyStatusMap.get(bill.apiKey)?.name || 'Unknown',
-          isDisabled: apikeyStatusMap.get(bill.apiKey)?.isDisabled ?? false,
+          name: bill.apiKey === 'playground' ? '在线体验' : bill.apiKeyDescription || `未命名(sk-***${bill.apiKey.slice(-4)})`,
+          isDisabled: bill.status === 'disabled',
           llmTokens: bill.llmTokens,
           imageTokens: bill.imageTokens,
           price: parseFloat(bill.amount),

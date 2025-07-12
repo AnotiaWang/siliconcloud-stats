@@ -40,7 +40,7 @@
 
   async function fetchCostData(useCache = true) {
     if (!selectedDateRange.value) return
-    if (!cookieStore.cookie) {
+    if (!cookieStore.cookie || !cookieStore.subjectId) {
       return
     }
     if (loading.value) return
@@ -82,6 +82,7 @@
             body: {
               cookie: cookieStore.cookie,
               date,
+              subjectId: cookieStore.subjectId,
             },
             ignoreResponseError: true,
           })
